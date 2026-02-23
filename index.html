@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-title" content="DogCalc">
+  <title>DogCalc</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      height: 100%;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #F2F2F7;
+      color: #000;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* --- Dark Mode --- */
+    @media (prefers-color-scheme: dark) {
+      html, body {
+        background: #000;
+        color: #FFF;
+      }
+      .card {
+        background: #1C1C1E !important;
+      }
+      .section-header {
+        color: #8E8E93 !important;
+      }
+      .screen-title {
+        color: #FFF !important;
+      }
+      .card input[type="text"],
+      .card input[type="number"] {
+        background: #2C2C2E !important;
+        color: #FFF !important;
+        border-color: rgba(255,255,255,0.1) !important;
+      }
+      .card input::placeholder {
+        color: #636366 !important;
+      }
+      .tab-bar {
+        background: rgba(28,28,30,0.85) !important;
+        border-top-color: rgba(255,255,255,0.1) !important;
+      }
+      .total-bar {
+        background: rgba(28,28,30,0.92) !important;
+        border-top-color: rgba(255,255,255,0.1) !important;
+      }
+      .separator {
+        border-bottom-color: rgba(255,255,255,0.1) !important;
+      }
+      .surcharge-row {
+        border-bottom-color: rgba(255,255,255,0.1) !important;
+      }
+      .size-btn {
+        background: #2C2C2E !important;
+        color: #FFF !important;
+      }
+      .size-btn.active {
+        background: #007AFF !important;
+        color: #FFF !important;
+      }
+      .segmented-control {
+        background: #2C2C2E !important;
+      }
+      .dog-entry {
+        border-bottom-color: rgba(255,255,255,0.1) !important;
+      }
+      .history-card {
+        background: #1C1C1E !important;
+      }
+      .empty-state {
+        color: #8E8E93 !important;
+      }
+      .stepper-btn {
+        background: #2C2C2E !important;
+        color: #FFF !important;
+      }
+      .expandable-header {
+        color: #8E8E93 !important;
+      }
+    }
+
+    /* --- Screen Management --- */
+    .screen {
+      display: none;
+      padding: 0 16px;
+      padding-top: env(safe-area-inset-top, 20px);
+      padding-bottom: 170px; /* room for total bar + tab bar */
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: scroll;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      z-index: 1;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .screen[data-screen="history"],
+    .screen[data-screen="settings"] {
+      padding-bottom: 80px; /* only tab bar */
+    }
+
+    /* --- Typography --- */
+    .screen-title {
+      font-size: 34px;
+      font-weight: 700;
+      color: #000;
+      padding: 52px 0 12px 0;
+    }
+
+    .section-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6D6D72;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      padding: 24px 0 8px 0;
+    }
+
+    /* --- Card --- */
+    .card {
+      background: #FFF;
+      border-radius: 12px;
+      padding: 0;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      min-height: 44px;
+    }
+
+    .card-row + .card-row {
+      border-top: 0.5px solid rgba(0,0,0,0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .card-row + .card-row {
+        border-top-color: rgba(255,255,255,0.1);
+      }
+    }
+
+    .card-row label {
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    /* --- Inputs --- */
+    .card input[type="text"],
+    .card input[type="number"] {
+      font-size: 17px;
+      font-family: inherit;
+      border: none;
+      background: #F2F2F7;
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: right;
+      width: 120px;
+      min-height: 44px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .card input[type="number"]::-webkit-inner-spin-button,
+    .card input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .miles-input {
+      font-size: 28px !important;
+      font-weight: 600;
+      text-align: center !important;
+      width: 100% !important;
+      padding: 16px 12px !important;
+    }
+
+    /* --- Segmented Control --- */
+    .segmented-control {
+      display: flex;
+      background: #E9E9EB;
+      border-radius: 8px;
+      padding: 2px;
+      position: relative;
+      width: 100%;
+    }
+
+    .segment {
+      flex: 1;
+      text-align: center;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 7px;
+      position: relative;
+      z-index: 1;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: color 0.2s;
+      color: #000;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .segment {
+        color: #FFF;
+      }
+    }
+
+    .segment.active {
+      background: #FFF;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .segment.active {
+        background: #636366;
+      }
+    }
+
+    /* --- Size Buttons --- */
+    .size-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .size-btn {
+      flex: 1;
+      min-height: 44px;
+      min-width: 44px;
+      border: none;
+      border-radius: 10px;
+      background: #F2F2F7;
+      font-size: 15px;
+      font-weight: 600;
+      color: #000;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .size-btn.active {
+      background: #007AFF;
+      color: #FFF;
+    }
+
+    /* --- Toggle Switch --- */
+    .toggle-switch {
+      position: relative;
+      width: 51px;
+      height: 31px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #E9E9EB;
+      border-radius: 15.5px;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+
+    .toggle-slider::after {
+      content: "";
+      position: absolute;
+      width: 27px;
+      height: 27px;
+      background: #FFF;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.25s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: #34C759;
+    }
+
+    .toggle-switch input:checked + .toggle-slider::after {
+      transform: translateX(20px);
+    }
+
+    /* --- Stepper --- */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .stepper-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      background: #F2F2F7;
+      font-size: 22px;
+      font-weight: 400;
+      color: #007AFF;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .stepper-btn:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    .stepper-btn:last-child {
+      border-radius: 0 8px 8px 0;
+    }
+
+    .stepper-value {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 600;
+      background: #F2F2F7;
+      border-left: 0.5px solid rgba(0,0,0,0.1);
+      border-right: 0.5px solid rgba(0,0,0,0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .stepper-btn {
+        background: #2C2C2E;
+      }
+      .stepper-value {
+        background: #2C2C2E;
+        color: #FFF;
+        border-left-color: rgba(255,255,255,0.1);
+        border-right-color: rgba(255,255,255,0.1);
+      }
+    }
+
+    /* --- Dog Entry --- */
+    .dog-entry {
+      padding: 12px 16px;
+      border-bottom: 0.5px solid rgba(0,0,0,0.1);
+    }
+
+    .dog-entry:last-child {
+      border-bottom: none;
+    }
+
+    .dog-entry-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .dog-entry-title {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .remove-dog-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      background: none;
+      color: #FF3B30;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .dog-field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+
+    .dog-field label {
+      font-size: 15px;
+      color: #3C3C43;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .dog-field label {
+        color: #EBEBF5;
+      }
+    }
+
+    .litter-options {
+      display: none;
+      padding-top: 4px;
+    }
+
+    .litter-options.visible {
+      display: block;
+    }
+
+    /* Age toggle buttons */
+    .age-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .age-btn {
+      flex: 1;
+      min-height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: #F2F2F7;
+      font-size: 13px;
+      font-weight: 500;
+      color: #000;
+      cursor: pointer;
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .age-btn.active {
+      background: #007AFF;
+      color: #FFF;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .age-btn {
+        background: #2C2C2E;
+        color: #FFF;
+      }
+      .age-btn.active {
+        background: #007AFF;
+        color: #FFF;
+      }
+    }
+
+    /* --- Add Dog Button --- */
+    .add-dog-btn {
+      width: 100%;
+      min-height: 44px;
+      border: none;
+      background: none;
+      color: #007AFF;
+      font-size: 17px;
+      font-weight: 400;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 16px;
+    }
+
+    /* --- Expandable Section --- */
+    .expandable-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      min-height: 44px;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+      color: #6D6D72;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .expandable-header .chevron {
+      transition: transform 0.25s;
+      font-size: 13px;
+    }
+
+    .expandable-header.expanded .chevron {
+      transform: rotate(90deg);
+    }
+
+    .expandable-content {
+      display: none;
+    }
+
+    .expandable-content.visible {
+      display: block;
+    }
+
+    .surcharge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      min-height: 44px;
+      border-bottom: 0.5px solid rgba(0,0,0,0.1);
+    }
+
+    .surcharge-row:last-child {
+      border-bottom: none;
+    }
+
+    .surcharge-row label {
+      font-size: 17px;
+    }
+
+    .surcharge-detail {
+      display: none;
+      padding: 0 16px 12px 16px;
+    }
+
+    .surcharge-detail.visible {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .surcharge-detail label {
+      font-size: 15px;
+      color: #3C3C43;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .surcharge-detail label {
+        color: #EBEBF5;
+      }
+    }
+
+    .surcharge-detail input[type="number"] {
+      width: 100px;
+    }
+
+    /* --- Total Bar --- */
+    .total-bar {
+      position: fixed;
+      bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+      left: 0;
+      right: 0;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 0.5px solid rgba(0,0,0,0.1);
+      padding: 10px 16px;
+      z-index: 100;
+      display: none;
+    }
+
+    .total-bar.visible {
+      display: block;
+    }
+
+    .total-amount {
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .generate-quote-btn {
+      display: block;
+      width: 100%;
+      min-height: 50px;
+      border: none;
+      border-radius: 12px;
+      background: #007AFF;
+      color: #FFF;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      font-family: inherit;
+    }
+
+    .generate-quote-btn:active {
+      opacity: 0.8;
+    }
+
+    /* --- Tab Bar --- */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: calc(56px + env(safe-area-inset-bottom, 0px));
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 0.5px solid rgba(0,0,0,0.15);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-around;
+      padding-top: 6px;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      z-index: 200;
+    }
+
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #8E8E93;
+      font-size: 10px;
+      font-weight: 500;
+      gap: 2px;
+      -webkit-user-select: none;
+      user-select: none;
+      padding: 2px 12px;
+    }
+
+    .tab .tab-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tab .tab-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .tab.active {
+      color: #007AFF;
+    }
+
+    /* --- History Screen --- */
+    .history-card {
+      background: #FFF;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .history-card:active {
+      opacity: 0.7;
+    }
+
+    .history-card-quote {
+      display: none;
+      font-size: 13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      background: #F2F2F7;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 8px;
+      color: #3C3C43;
+      line-height: 1.4;
+    }
+
+    .history-card-quote.visible {
+      display: block;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .history-card-quote {
+        background: #2C2C2E;
+        color: #EBEBF5;
+      }
+    }
+
+    .history-copy-btn {
+      display: none;
+      width: 100%;
+      min-height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: #007AFF;
+      color: #FFF;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      font-family: inherit;
+    }
+
+    .history-copy-btn.visible {
+      display: block;
+    }
+
+    .history-copy-btn:active {
+      opacity: 0.8;
+    }
+
+    .history-card-date {
+      font-size: 13px;
+      color: #8E8E93;
+      margin-bottom: 4px;
+    }
+
+    .history-card-summary {
+      font-size: 17px;
+      font-weight: 400;
+      margin-bottom: 2px;
+    }
+
+    .history-card-total {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .history-card-date { color: #8E8E93; }
+      .history-card-summary { color: #EBEBF5; }
+      .history-card-total { color: #FFF; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #8E8E93;
+      font-size: 17px;
+    }
+
+    .clear-history-btn {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      border: none;
+      background: none;
+      color: #FF3B30;
+      font-size: 17px;
+      cursor: pointer;
+      padding: 16px;
+      text-align: center;
+    }
+
+    /* --- Settings Screen --- */
+    .settings-input-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      min-height: 44px;
+    }
+
+    .settings-input-row + .settings-input-row {
+      border-top: 0.5px solid rgba(0,0,0,0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .settings-input-row + .settings-input-row {
+        border-top-color: rgba(255,255,255,0.1);
+      }
+    }
+
+    .settings-input-row label {
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .settings-input-row input {
+      font-size: 17px;
+      font-family: inherit;
+      border: none;
+      background: #F2F2F7;
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: right;
+      width: 120px;
+      min-height: 44px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .settings-input-row input[type="number"]::-webkit-inner-spin-button,
+    .settings-input-row input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .settings-input-row input {
+        background: #2C2C2E;
+        color: #FFF;
+      }
+    }
+
+    .reset-defaults-btn {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      border: none;
+      background: none;
+      color: #FF3B30;
+      font-size: 17px;
+      cursor: pointer;
+      padding: 16px;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    /* --- Touch Feedback --- */
+    .size-btn:active,
+    .age-btn:active {
+      opacity: 0.6;
+    }
+
+    .add-dog-btn:active {
+      opacity: 0.6;
+    }
+
+    .remove-dog-btn:active {
+      background: rgba(255, 59, 48, 0.1);
+    }
+
+    .tab:active {
+      opacity: 0.6;
+    }
+
+    .stepper-btn:active {
+      opacity: 0.6;
+    }
+
+    .segment:active {
+      opacity: 0.6;
+    }
+
+    .expandable-header:active {
+      opacity: 0.6;
+    }
+
+    .toggle-slider:active {
+      opacity: 0.8;
+    }
+
+    .clear-history-btn:active,
+    .reset-defaults-btn:active {
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== CALCULATOR SCREEN ==================== -->
+  <div class="screen active" data-screen="calculator">
+    <h1 class="screen-title">DogCalc</h1>
+
+    <!-- Trip Details -->
+    <div class="section-header">Trip Details</div>
+    <div class="card">
+      <div class="card-row">
+        <input type="number" inputmode="numeric" class="miles-input" id="milesInput" placeholder="Enter miles" min="0">
+      </div>
+      <div class="card-row">
+        <div class="segmented-control" id="tierControl">
+          <div class="segment active" data-tier="economy">Economy</div>
+          <div class="segment" data-tier="vip">VIP</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dogs -->
+    <div class="section-header">Dogs</div>
+    <div class="card" id="dogsCard">
+      <div id="dogEntries">
+        <!-- Dog entries will be added dynamically by JS -->
+      </div>
+      <button type="button" class="add-dog-btn" id="addDogBtn">+ Add Dog</button>
+    </div>
+
+    <!-- Surcharges -->
+    <div class="section-header">Surcharges</div>
+    <div class="card" id="surchargesCard">
+      <div class="expandable-header" id="surchargesHeader">
+        <span>Add Surcharges</span>
+        <span class="chevron">&#9654;</span>
+      </div>
+      <div class="expandable-content" id="surchargesContent">
+        <!-- Detour -->
+        <div class="surcharge-row">
+          <label>Detour</label>
+          <div class="toggle-switch">
+            <input type="checkbox" id="detourToggle">
+            <span class="toggle-slider"></span>
+          </div>
+        </div>
+        <div class="surcharge-detail" id="detourDetail">
+          <label>Extra miles</label>
+          <input type="number" inputmode="numeric" id="detourMiles" placeholder="0" min="0">
+        </div>
+
+        <!-- Wait Time -->
+        <div class="surcharge-row">
+          <label>Wait Time</label>
+          <div class="toggle-switch">
+            <input type="checkbox" id="waitToggle">
+            <span class="toggle-slider"></span>
+          </div>
+        </div>
+        <div class="surcharge-detail" id="waitDetail">
+          <label>Minutes</label>
+          <input type="number" inputmode="numeric" id="waitMinutes" placeholder="0" min="0">
+        </div>
+
+        <!-- Holiday/Weekend -->
+        <div class="surcharge-row">
+          <label>Holiday / Weekend</label>
+          <div class="toggle-switch">
+            <input type="checkbox" id="holidayToggle">
+            <span class="toggle-slider"></span>
+          </div>
+        </div>
+
+        <!-- Overnight -->
+        <div class="surcharge-row">
+          <label>Overnight Stay</label>
+          <div class="toggle-switch">
+            <input type="checkbox" id="overnightToggle">
+            <span class="toggle-slider"></span>
+          </div>
+        </div>
+        <div class="surcharge-detail" id="overnightDetail">
+          <label>Nights</label>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" data-action="decrement" data-target="overnightNights">&minus;</button>
+            <span class="stepper-value" id="overnightNights">1</span>
+            <button type="button" class="stepper-btn" data-action="increment" data-target="overnightNights">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== HISTORY SCREEN ==================== -->
+  <div class="screen" data-screen="history">
+    <h1 class="screen-title">Quote History</h1>
+
+    <div id="historyList">
+      <div class="empty-state" id="historyEmpty">No quotes yet</div>
+    </div>
+
+    <button type="button" class="clear-history-btn" id="clearHistoryBtn">Clear History</button>
+  </div>
+
+  <!-- ==================== SETTINGS SCREEN ==================== -->
+  <div class="screen" data-screen="settings">
+    <h1 class="screen-title">Settings</h1>
+
+    <!-- Business Info -->
+    <div class="section-header">Business Info</div>
+    <div class="card">
+      <div class="settings-input-row">
+        <label>Business Name</label>
+        <input type="text" id="settingBusinessName" placeholder="Your business name">
+      </div>
+    </div>
+
+    <!-- Base Rates -->
+    <div class="section-header">Base Rates</div>
+    <div class="card">
+      <div class="settings-input-row">
+        <label>Base Fee</label>
+        <input type="number" inputmode="decimal" id="settingBaseFee" value="200" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Per-Mile Rate</label>
+        <input type="number" inputmode="decimal" id="settingPerMile" value="1.00" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Sanitation Fee</label>
+        <input type="number" inputmode="decimal" id="settingSanitation" value="35" min="0" step="any">
+      </div>
+    </div>
+
+    <!-- Size Surcharges -->
+    <div class="section-header">Size Surcharges</div>
+    <div class="card">
+      <div class="settings-input-row">
+        <label>Small</label>
+        <input type="number" inputmode="decimal" id="settingSizeSmall" value="0" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Medium</label>
+        <input type="number" inputmode="decimal" id="settingSizeMedium" value="25" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Large</label>
+        <input type="number" inputmode="decimal" id="settingSizeLarge" value="50" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>XL</label>
+        <input type="number" inputmode="decimal" id="settingSizeXL" value="100" min="0" step="any">
+      </div>
+    </div>
+
+    <!-- Litter Rates -->
+    <div class="section-header">Litter Rates</div>
+    <div class="card">
+      <div class="settings-input-row">
+        <label>Under 16 wks</label>
+        <input type="number" inputmode="decimal" id="settingLitterUnder16" value="75" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Over 16 wks</label>
+        <input type="number" inputmode="decimal" id="settingLitterOver16" value="100" min="0" step="any">
+      </div>
+    </div>
+
+    <!-- VIP Rates -->
+    <div class="section-header">VIP Rates</div>
+    <div class="card">
+      <div class="settings-input-row">
+        <label>Base Multiplier</label>
+        <input type="number" inputmode="decimal" id="settingVipMultiplier" value="2" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Per-Mile Adder</label>
+        <input type="number" inputmode="decimal" id="settingVipPerMile" value="2.00" min="0" step="any">
+      </div>
+    </div>
+
+    <!-- Surcharge Rates -->
+    <div class="section-header">Surcharge Rates</div>
+    <div class="card">
+      <div class="settings-input-row">
+        <label>Detour $/mile</label>
+        <input type="number" inputmode="decimal" id="settingDetourPerMile" value="1.50" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Detour Threshold</label>
+        <input type="number" inputmode="decimal" id="settingDetourThreshold" value="30" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Wait $/min</label>
+        <input type="number" inputmode="decimal" id="settingWaitPerMin" value="1.00" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Grace Period (min)</label>
+        <input type="number" inputmode="decimal" id="settingGracePeriod" value="20" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Holiday %</label>
+        <input type="number" inputmode="decimal" id="settingHolidayPercent" value="20" min="0" step="any">
+      </div>
+      <div class="settings-input-row">
+        <label>Overnight $/night</label>
+        <input type="number" inputmode="decimal" id="settingOvernightPerNight" value="97" min="0" step="any">
+      </div>
+    </div>
+
+    <button type="button" class="reset-defaults-btn" id="resetDefaultsBtn">Reset to Defaults</button>
+  </div>
+
+  <!-- ==================== TOTAL BAR (Calculator only) ==================== -->
+  <div class="total-bar visible" id="totalBar">
+    <div class="total-amount" id="totalAmount">$0.00</div>
+    <button type="button" class="generate-quote-btn" id="generateQuoteBtn">Generate Quote</button>
+  </div>
+
+  <!-- ==================== TAB BAR ==================== -->
+  <nav class="tab-bar">
+    <button type="button" class="tab active" data-screen="calculator">
+      <span class="tab-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="8" y1="19" x2="16" y2="19"/></svg></span>
+      <span>Calculator</span>
+    </button>
+    <button type="button" class="tab" data-screen="history">
+      <span class="tab-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 16,14"/></svg></span>
+      <span>History</span>
+    </button>
+    <button type="button" class="tab" data-screen="settings">
+      <span class="tab-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <script>
+    // ===================== DEFAULT SETTINGS =====================
+    const DEFAULTS = {
+      businessName: '',
+      baseFee: 200, perMile: 1.00, sanitation: 35,
+      sizeSmall: 0, sizeMedium: 25, sizeLarge: 50, sizeXL: 100,
+      litterUnder16: 75, litterOver16: 100,
+      vipMultiplier: 2, vipPerMile: 2.00,
+      detourPerMile: 1.50, detourThreshold: 30,
+      waitPerMin: 1.00, gracePeriod: 20,
+      holidayPercent: 20, overnightPerNight: 97
+    };
+
+    const SETTINGS_KEY = 'dogcalc_settings';
+    const HISTORY_KEY = 'dogcalc_history';
+
+    // Map setting keys to input element IDs
+    const SETTING_IDS = {
+      businessName: 'settingBusinessName',
+      baseFee: 'settingBaseFee',
+      perMile: 'settingPerMile',
+      sanitation: 'settingSanitation',
+      sizeSmall: 'settingSizeSmall',
+      sizeMedium: 'settingSizeMedium',
+      sizeLarge: 'settingSizeLarge',
+      sizeXL: 'settingSizeXL',
+      litterUnder16: 'settingLitterUnder16',
+      litterOver16: 'settingLitterOver16',
+      vipMultiplier: 'settingVipMultiplier',
+      vipPerMile: 'settingVipPerMile',
+      detourPerMile: 'settingDetourPerMile',
+      detourThreshold: 'settingDetourThreshold',
+      waitPerMin: 'settingWaitPerMin',
+      gracePeriod: 'settingGracePeriod',
+      holidayPercent: 'settingHolidayPercent',
+      overnightPerNight: 'settingOvernightPerNight'
+    };
+
+    // ===================== SETTINGS PERSISTENCE =====================
+    function loadSettings() {
+      let saved = {};
+      try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch(e) {}
+      for (const [key, id] of Object.entries(SETTING_IDS)) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const val = saved[key] !== undefined ? saved[key] : DEFAULTS[key];
+        el.value = val;
+      }
+    }
+
+    function saveSettings() {
+      const settings = {};
+      for (const [key, id] of Object.entries(SETTING_IDS)) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        settings[key] = key === 'businessName' ? el.value : parseFloat(el.value) || 0;
+      }
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+
+    function getSetting(key) {
+      const el = document.getElementById(SETTING_IDS[key]);
+      if (!el) return DEFAULTS[key];
+      if (key === 'businessName') return el.value;
+      return parseFloat(el.value) || 0;
+    }
+
+    function resetDefaults() {
+      for (const [key, id] of Object.entries(SETTING_IDS)) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        el.value = DEFAULTS[key];
+      }
+      saveSettings();
+      recalculate();
+    }
+
+    // ===================== TAB NAVIGATION =====================
+    const tabs = document.querySelectorAll('.tab[data-screen]');
+    const screens = document.querySelectorAll('.screen[data-screen]');
+    const totalBar = document.getElementById('totalBar');
+
+    function switchScreen(name) {
+      screens.forEach(s => s.classList.toggle('active', s.dataset.screen === name));
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.screen === name));
+      totalBar.classList.toggle('visible', name === 'calculator');
+      if (name === 'history') renderHistory();
+      const activeScreen = document.querySelector('.screen.active');
+      if (activeScreen) activeScreen.scrollTop = 0;
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => switchScreen(tab.dataset.screen));
+    });
+
+    // ===================== DOG MANAGEMENT =====================
+    let dogCounter = 0;
+
+    function createDogEntry() {
+      dogCounter++;
+      const idx = dogCounter;
+      const entry = document.createElement('div');
+      entry.className = 'dog-entry';
+      entry.dataset.dogId = idx;
+      entry.innerHTML = `
+        <div class="dog-entry-header">
+          <span class="dog-entry-title">Dog ${idx}</span>
+          <button type="button" class="remove-dog-btn" data-remove="${idx}">&times;</button>
+        </div>
+        <div class="dog-field">
+          <label>Size</label>
+          <div class="size-buttons">
+            <button type="button" class="size-btn active" data-size="S">S</button>
+            <button type="button" class="size-btn" data-size="M">M</button>
+            <button type="button" class="size-btn" data-size="L">L</button>
+            <button type="button" class="size-btn" data-size="XL">XL</button>
+          </div>
+        </div>
+        <div class="dog-field">
+          <label>Litter</label>
+          <div class="toggle-switch">
+            <input type="checkbox" class="litter-toggle" data-dog="${idx}">
+            <span class="toggle-slider"></span>
+          </div>
+        </div>
+        <div class="litter-options" data-litter-options="${idx}">
+          <div class="dog-field">
+            <label>Siblings</label>
+            <div class="stepper">
+              <button type="button" class="stepper-btn" data-action="decrement" data-stepper="siblings-${idx}">&minus;</button>
+              <span class="stepper-value" id="siblings-${idx}">1</span>
+              <button type="button" class="stepper-btn" data-action="increment" data-stepper="siblings-${idx}">+</button>
+            </div>
+          </div>
+          <div class="dog-field">
+            <label>Age</label>
+            <div class="age-buttons">
+              <button type="button" class="age-btn active" data-age="under16">Under 16 wks</button>
+              <button type="button" class="age-btn" data-age="over16">Over 16 wks</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Size buttons
+      entry.querySelectorAll('.size-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          entry.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          recalculate();
+        });
+      });
+
+      // Litter toggle
+      const litterToggle = entry.querySelector('.litter-toggle');
+      const litterOpts = entry.querySelector(`[data-litter-options="${idx}"]`);
+      litterToggle.addEventListener('change', () => {
+        litterOpts.classList.toggle('visible', litterToggle.checked);
+        recalculate();
+      });
+
+      // Age buttons
+      entry.querySelectorAll('.age-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          entry.querySelectorAll('.age-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          recalculate();
+        });
+      });
+
+      // Remove button
+      entry.querySelector('.remove-dog-btn').addEventListener('click', () => {
+        entry.remove();
+        renumberDogs();
+        recalculate();
+      });
+
+      document.getElementById('dogEntries').appendChild(entry);
+      recalculate();
+      return entry;
+    }
+
+    function renumberDogs() {
+      const entries = document.querySelectorAll('#dogEntries .dog-entry');
+      entries.forEach((entry, i) => {
+        entry.querySelector('.dog-entry-title').textContent = `Dog ${i + 1}`;
+      });
+    }
+
+    function getDogData() {
+      const dogs = [];
+      document.querySelectorAll('#dogEntries .dog-entry').forEach(entry => {
+        const activeSize = entry.querySelector('.size-btn.active');
+        const size = activeSize ? activeSize.dataset.size : 'S';
+        const isLitter = entry.querySelector('.litter-toggle').checked;
+        const siblingsEl = entry.querySelector('.stepper-value');
+        const siblingCount = parseInt(siblingsEl.textContent) || 1;
+        const activeAge = entry.querySelector('.age-btn.active');
+        const age = activeAge ? activeAge.dataset.age : 'under16';
+        dogs.push({ size, isLitter, siblingCount, age });
+      });
+      return dogs;
+    }
+
+    document.getElementById('addDogBtn').addEventListener('click', createDogEntry);
+
+    // ===================== STEPPER LOGIC =====================
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.stepper-btn');
+      if (!btn) return;
+      const targetId = btn.dataset.target || btn.dataset.stepper;
+      if (!targetId) return;
+      const valueEl = document.getElementById(targetId);
+      if (!valueEl) return;
+      let val = parseInt(valueEl.textContent) || 1;
+      if (btn.dataset.action === 'increment') val++;
+      if (btn.dataset.action === 'decrement' && val > 1) val--;
+      valueEl.textContent = val;
+      recalculate();
+    });
+
+    // ===================== SURCHARGES EXPANDABLE =====================
+    const surchargesHeader = document.getElementById('surchargesHeader');
+    const surchargesContent = document.getElementById('surchargesContent');
+
+    surchargesHeader.addEventListener('click', () => {
+      surchargesHeader.classList.toggle('expanded');
+      surchargesContent.classList.toggle('visible');
+    });
+
+    // Surcharge toggle -> show/hide detail
+    function setupSurchargeToggle(toggleId, detailId) {
+      const toggle = document.getElementById(toggleId);
+      const detail = document.getElementById(detailId);
+      if (!toggle || !detail) return;
+      toggle.addEventListener('change', () => {
+        detail.classList.toggle('visible', toggle.checked);
+        recalculate();
+      });
+    }
+
+    setupSurchargeToggle('detourToggle', 'detourDetail');
+    setupSurchargeToggle('waitToggle', 'waitDetail');
+    setupSurchargeToggle('overnightToggle', 'overnightDetail');
+
+    // Holiday has no detail, just recalculate
+    document.getElementById('holidayToggle').addEventListener('change', recalculate);
+
+    // ===================== TIER SEGMENTED CONTROL =====================
+    const tierControl = document.getElementById('tierControl');
+    tierControl.querySelectorAll('.segment').forEach(seg => {
+      seg.addEventListener('click', () => {
+        tierControl.querySelectorAll('.segment').forEach(s => s.classList.remove('active'));
+        seg.classList.add('active');
+        recalculate();
+      });
+    });
+
+    function getActiveTier() {
+      const active = tierControl.querySelector('.segment.active');
+      return active ? active.dataset.tier : 'economy';
+    }
+
+    // ===================== PRICING ENGINE =====================
+    function getSizeSurcharge(size) {
+      switch(size) {
+        case 'S': return getSetting('sizeSmall');
+        case 'M': return getSetting('sizeMedium');
+        case 'L': return getSetting('sizeLarge');
+        case 'XL': return getSetting('sizeXL');
+        default: return 0;
+      }
+    }
+
+    function calculateTotal() {
+      const miles = parseFloat(document.getElementById('milesInput').value) || 0;
+      const tier = getActiveTier();
+      const dogs = getDogData();
+
+      const baseFee = getSetting('baseFee');
+      const perMile = getSetting('perMile');
+      const sanitation = getSetting('sanitation');
+      const vipMultiplier = getSetting('vipMultiplier');
+      const vipPerMile = getSetting('vipPerMile');
+
+      let total = 0;
+
+      // Calculate per-dog costs
+      dogs.forEach(dog => {
+        let dogBase, dogMileage;
+        if (tier === 'vip') {
+          dogBase = baseFee * vipMultiplier;
+          dogMileage = miles * (perMile + vipPerMile);
+        } else {
+          dogBase = baseFee;
+          dogMileage = miles * perMile;
+        }
+        const sizeSurcharge = getSizeSurcharge(dog.size);
+        // First dog (or non-litter) gets full rate
+        total += dogBase + dogMileage + sizeSurcharge + sanitation;
+
+        // Litter siblings
+        if (dog.isLitter && dog.siblingCount > 1) {
+          const litterRate = dog.age === 'under16'
+            ? getSetting('litterUnder16')
+            : getSetting('litterOver16');
+          total += (dog.siblingCount - 1) * litterRate;
+        }
+      });
+
+      // Surcharges
+      // Detour
+      if (document.getElementById('detourToggle').checked) {
+        const detourMiles = parseFloat(document.getElementById('detourMiles').value) || 0;
+        const threshold = getSetting('detourThreshold');
+        const detourRate = getSetting('detourPerMile');
+        if (detourMiles > threshold) {
+          total += (detourMiles - threshold) * detourRate;
+        }
+      }
+
+      // Wait time
+      if (document.getElementById('waitToggle').checked) {
+        const waitMin = parseFloat(document.getElementById('waitMinutes').value) || 0;
+        const grace = getSetting('gracePeriod');
+        const waitRate = getSetting('waitPerMin');
+        if (waitMin > grace) {
+          total += (waitMin - grace) * waitRate;
+        }
+      }
+
+      // Overnight
+      if (document.getElementById('overnightToggle').checked) {
+        const nights = parseInt(document.getElementById('overnightNights').textContent) || 1;
+        total += nights * getSetting('overnightPerNight');
+      }
+
+      // Holiday % — applied LAST as percentage of subtotal
+      if (document.getElementById('holidayToggle').checked) {
+        total += total * (getSetting('holidayPercent') / 100);
+      }
+
+      return total;
+    }
+
+    function recalculate() {
+      const total = calculateTotal();
+      document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+    }
+
+    // Live recalculation on input changes
+    document.getElementById('milesInput').addEventListener('input', recalculate);
+    document.getElementById('detourMiles').addEventListener('input', recalculate);
+    document.getElementById('waitMinutes').addEventListener('input', recalculate);
+
+    // Settings inputs also trigger recalculate
+    for (const id of Object.values(SETTING_IDS)) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => {
+          saveSettings();
+          recalculate();
+        });
+      }
+    }
+
+    // ===================== CLIPBOARD HELPER =====================
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+      }
+      // Fallback for file:// URLs
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return Promise.resolve();
+    }
+
+    // ===================== GENERATE QUOTE =====================
+    document.getElementById('generateQuoteBtn').addEventListener('click', () => {
+      const miles = parseFloat(document.getElementById('milesInput').value) || 0;
+      const tier = getActiveTier();
+      const dogs = getDogData();
+      const total = calculateTotal();
+      const businessName = getSetting('businessName');
+
+      const baseFee = getSetting('baseFee');
+      const perMile = getSetting('perMile');
+      const sanitation = getSetting('sanitation');
+      const vipMultiplier = getSetting('vipMultiplier');
+      const vipPerMile = getSetting('vipPerMile');
+
+      let lines = [];
+      if (businessName) lines.push(businessName);
+      lines.push('Transport Quote');
+      lines.push('─'.repeat(28));
+      lines.push(`Service: ${tier === 'vip' ? 'VIP' : 'Economy'}`);
+      lines.push(`Distance: ${miles} miles`);
+      lines.push('');
+
+      dogs.forEach((dog, i) => {
+        let dogBase, dogMileage;
+        if (tier === 'vip') {
+          dogBase = baseFee * vipMultiplier;
+          dogMileage = miles * (perMile + vipPerMile);
+        } else {
+          dogBase = baseFee;
+          dogMileage = miles * perMile;
+        }
+        const sizeSurcharge = getSizeSurcharge(dog.size);
+        const sizeLabel = {S:'Small',M:'Medium',L:'Large',XL:'XL'}[dog.size] || dog.size;
+        lines.push(`Dog ${i+1} (${sizeLabel}):`);
+        lines.push(`  Base fee: $${dogBase.toFixed(2)}`);
+        lines.push(`  Mileage: $${dogMileage.toFixed(2)}`);
+        if (sizeSurcharge > 0) lines.push(`  Size surcharge: $${sizeSurcharge.toFixed(2)}`);
+        lines.push(`  Sanitation: $${sanitation.toFixed(2)}`);
+
+        if (dog.isLitter && dog.siblingCount > 1) {
+          const litterRate = dog.age === 'under16'
+            ? getSetting('litterUnder16')
+            : getSetting('litterOver16');
+          const siblingTotal = (dog.siblingCount - 1) * litterRate;
+          const ageLabel = dog.age === 'under16' ? 'under 16 wks' : 'over 16 wks';
+          lines.push(`  Litter: ${dog.siblingCount - 1} sibling(s) (${ageLabel}) @ $${litterRate.toFixed(2)} = $${siblingTotal.toFixed(2)}`);
+        }
+        lines.push('');
+      });
+
+      // Surcharges
+      let hasSurcharges = false;
+      if (document.getElementById('detourToggle').checked) {
+        const detourMiles = parseFloat(document.getElementById('detourMiles').value) || 0;
+        const threshold = getSetting('detourThreshold');
+        const detourRate = getSetting('detourPerMile');
+        if (detourMiles > threshold) {
+          if (!hasSurcharges) { lines.push('Surcharges:'); hasSurcharges = true; }
+          const detourFee = (detourMiles - threshold) * detourRate;
+          lines.push(`  Detour: ${detourMiles} mi (${detourMiles - threshold} mi over threshold) = $${detourFee.toFixed(2)}`);
+        }
+      }
+      if (document.getElementById('waitToggle').checked) {
+        const waitMin = parseFloat(document.getElementById('waitMinutes').value) || 0;
+        const grace = getSetting('gracePeriod');
+        const waitRate = getSetting('waitPerMin');
+        if (waitMin > grace) {
+          if (!hasSurcharges) { lines.push('Surcharges:'); hasSurcharges = true; }
+          const waitFee = (waitMin - grace) * waitRate;
+          lines.push(`  Wait time: ${waitMin} min (${waitMin - grace} min over grace) = $${waitFee.toFixed(2)}`);
+        }
+      }
+      if (document.getElementById('overnightToggle').checked) {
+        const nights = parseInt(document.getElementById('overnightNights').textContent) || 1;
+        const overnightRate = getSetting('overnightPerNight');
+        if (!hasSurcharges) { lines.push('Surcharges:'); hasSurcharges = true; }
+        lines.push(`  Overnight: ${nights} night(s) @ $${overnightRate.toFixed(2)} = $${(nights * overnightRate).toFixed(2)}`);
+      }
+      if (document.getElementById('holidayToggle').checked) {
+        const pct = getSetting('holidayPercent');
+        if (!hasSurcharges) { lines.push('Surcharges:'); hasSurcharges = true; }
+        // Calculate subtotal before holiday
+        const subtotal = total / (1 + pct / 100);
+        const holidayFee = total - subtotal;
+        lines.push(`  Holiday/Weekend: ${pct}% = $${holidayFee.toFixed(2)}`);
+      }
+
+      if (hasSurcharges) lines.push('');
+      lines.push('─'.repeat(28));
+      lines.push(`TOTAL: $${total.toFixed(2)}`);
+
+      const quoteText = lines.join('\n');
+
+      // Copy to clipboard
+      copyToClipboard(quoteText).then(() => {
+        const btn = document.getElementById('generateQuoteBtn');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1500);
+      }).catch(() => {});
+
+      // Save to history
+      const surcharges = {};
+      if (document.getElementById('detourToggle').checked)
+        surcharges.detour = parseFloat(document.getElementById('detourMiles').value) || 0;
+      if (document.getElementById('waitToggle').checked)
+        surcharges.wait = parseFloat(document.getElementById('waitMinutes').value) || 0;
+      if (document.getElementById('holidayToggle').checked)
+        surcharges.holiday = true;
+      if (document.getElementById('overnightToggle').checked)
+        surcharges.overnight = parseInt(document.getElementById('overnightNights').textContent) || 1;
+
+      const entry = {
+        date: new Date().toISOString(),
+        miles,
+        tier,
+        dogs,
+        surcharges,
+        total,
+        quoteText
+      };
+
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) {}
+      history.unshift(entry);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    });
+
+    // ===================== HISTORY =====================
+    function renderHistory() {
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) {}
+      const list = document.getElementById('historyList');
+      const empty = document.getElementById('historyEmpty');
+
+      // Clear existing cards (keep empty state element)
+      list.querySelectorAll('.history-card').forEach(c => c.remove());
+
+      const clearBtn = document.getElementById('clearHistoryBtn');
+      if (history.length === 0) {
+        empty.style.display = '';
+        clearBtn.style.display = 'none';
+        return;
+      }
+      empty.style.display = 'none';
+      clearBtn.style.display = '';
+
+      history.forEach((entry, idx) => {
+        const card = document.createElement('div');
+        card.className = 'history-card';
+        const d = new Date(entry.date);
+        const dateStr = d.toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit'
+        });
+        const dogSummary = entry.dogs.map(dog => {
+          const sizeLabel = {S:'Small',M:'Medium',L:'Large',XL:'XL'}[dog.size] || dog.size;
+          return sizeLabel + (dog.isLitter ? ` (litter x${dog.siblingCount})` : '');
+        }).join(', ');
+
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'history-card-date';
+        dateDiv.textContent = dateStr;
+
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'history-card-summary';
+        summaryDiv.textContent = `${entry.miles} mi · ${entry.tier === 'vip' ? 'VIP' : 'Economy'} · ${dogSummary}`;
+
+        const totalDiv = document.createElement('div');
+        totalDiv.className = 'history-card-total';
+        totalDiv.textContent = '$' + entry.total.toFixed(2);
+
+        const quoteDiv = document.createElement('div');
+        quoteDiv.className = 'history-card-quote';
+        quoteDiv.textContent = entry.quoteText || '';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'history-copy-btn';
+        copyBtn.textContent = 'Copy Quote';
+
+        card.appendChild(dateDiv);
+        card.appendChild(summaryDiv);
+        card.appendChild(totalDiv);
+        card.appendChild(quoteDiv);
+        card.appendChild(copyBtn);
+
+        card.addEventListener('click', (e) => {
+          if (e.target === copyBtn) return;
+          quoteDiv.classList.toggle('visible');
+          copyBtn.classList.toggle('visible');
+        });
+
+        copyBtn.addEventListener('click', () => {
+          copyToClipboard(entry.quoteText || '').then(() => {
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => { copyBtn.textContent = 'Copy Quote'; }, 1500);
+          }).catch(() => {});
+        });
+
+        list.appendChild(card);
+      });
+    }
+
+    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      localStorage.removeItem(HISTORY_KEY);
+      renderHistory();
+    });
+
+    // ===================== RESET DEFAULTS =====================
+    document.getElementById('resetDefaultsBtn').addEventListener('click', resetDefaults);
+
+    // ===================== INIT =====================
+    loadSettings();
+    createDogEntry();  // Auto-add first dog
+    recalculate();
+  </script>
+</body>
+</html>
