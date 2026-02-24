@@ -113,12 +113,12 @@
       display: none;
       padding: 0 16px;
       padding-top: env(safe-area-inset-top, 20px);
-      padding-bottom: 170px; /* room for total bar + tab bar */
+      padding-bottom: 20px;
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      bottom: 0;
+      bottom: calc(56px + env(safe-area-inset-bottom, 0px));
       overflow-y: scroll;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
@@ -129,9 +129,8 @@
       display: block;
     }
 
-    .screen[data-screen="history"],
-    .screen[data-screen="settings"] {
-      padding-bottom: 80px; /* only tab bar */
+    .screen[data-screen="calculator"] {
+      bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 108px);
     }
 
     /* --- Typography --- */
