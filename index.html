@@ -1794,42 +1794,12 @@
           <input type="number" inputmode="numeric" id="detourMiles" placeholder="0" min="0">
         </div>
 
-        <!-- Wait Time -->
-        <div class="surcharge-row">
-          <label>Wait Time</label>
-          <div class="toggle-switch">
-            <input type="checkbox" id="waitToggle">
-            <span class="toggle-slider"></span>
-          </div>
-        </div>
-        <div class="surcharge-detail" id="waitDetail">
-          <label>Minutes</label>
-          <input type="number" inputmode="numeric" id="waitMinutes" placeholder="0" min="0">
-        </div>
-
         <!-- Holiday/Weekend -->
         <div class="surcharge-row">
           <label>Holiday / Weekend</label>
           <div class="toggle-switch">
             <input type="checkbox" id="holidayToggle">
             <span class="toggle-slider"></span>
-          </div>
-        </div>
-
-        <!-- Overnight -->
-        <div class="surcharge-row">
-          <label>Overnight Stay</label>
-          <div class="toggle-switch">
-            <input type="checkbox" id="overnightToggle">
-            <span class="toggle-slider"></span>
-          </div>
-        </div>
-        <div class="surcharge-detail" id="overnightDetail">
-          <label>Nights</label>
-          <div class="stepper">
-            <button type="button" class="stepper-btn" data-action="decrement" data-target="overnightNights">&minus;</button>
-            <span class="stepper-value" id="overnightNights">1</span>
-            <button type="button" class="stepper-btn" data-action="increment" data-target="overnightNights">+</button>
           </div>
         </div>
       </div>
@@ -1990,23 +1960,11 @@
         <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingDetourThreshold" value="30" min="0" step="any"><span class="unit-suffix">mi</span></div>
       </div>
       <div class="settings-input-row">
-        <label>Wait Time Rate</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingWaitPerMin" value="1.00" min="0" step="any"><span class="unit-suffix">/min</span></div>
-      </div>
-      <div class="settings-input-row">
-        <label>Grace Period</label>
-        <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingGracePeriod" value="20" min="0" step="any"><span class="unit-suffix">min</span></div>
-      </div>
-      <div class="settings-input-row">
         <label>Holiday Surcharge</label>
         <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingHolidayPercent" value="20" min="0" step="any"><span class="unit-suffix">%</span></div>
       </div>
-      <div class="settings-input-row">
-        <label>Overnight Stay</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingOvernightPerNight" value="97" min="0" step="any"><span class="unit-suffix">/night</span></div>
-      </div>
     </div>
-    <div class="section-footer">Detour charges apply per extra mile beyond the threshold. Wait time charges after the grace period. Holiday adds a percentage to the total. Overnight is per night when a trip requires a stopover.</div>
+    <div class="section-footer">Detour charges apply per extra mile beyond the threshold. Holiday adds a percentage to the total.</div>
 
     <button type="button" class="reset-defaults-btn" id="resetDefaultsBtn">Reset to Defaults</button>
   </div>
@@ -2060,8 +2018,7 @@
       litterUnder16: 75, litterOver16: 100,
       vipMultiplier: 2, vipPerMile: 2.00,
       detourPerMile: 1.50, detourThreshold: 30,
-      waitPerMin: 1.00, gracePeriod: 20,
-      holidayPercent: 20, overnightPerNight: 97
+      holidayPercent: 20
     };
 
     const SETTINGS_KEY = 'dogcalc_settings';
@@ -2084,10 +2041,7 @@
       vipPerMile: 'settingVipPerMile',
       detourPerMile: 'settingDetourPerMile',
       detourThreshold: 'settingDetourThreshold',
-      waitPerMin: 'settingWaitPerMin',
-      gracePeriod: 'settingGracePeriod',
-      holidayPercent: 'settingHolidayPercent',
-      overnightPerNight: 'settingOvernightPerNight'
+      holidayPercent: 'settingHolidayPercent'
     };
 
     // ===================== SETTINGS PERSISTENCE =====================
@@ -2334,8 +2288,6 @@
     }
 
     setupSurchargeToggle('detourToggle', 'detourDetail');
-    setupSurchargeToggle('waitToggle', 'waitDetail');
-    setupSurchargeToggle('overnightToggle', 'overnightDetail');
 
     // Holiday has no detail, just recalculate
     document.getElementById('holidayToggle').addEventListener('change', recalculate);
@@ -2413,22 +2365,6 @@
         }
       }
 
-      // Wait time
-      if (document.getElementById('waitToggle').checked) {
-        const waitMin = parseFloat(document.getElementById('waitMinutes').value) || 0;
-        const grace = getSetting('gracePeriod');
-        const waitRate = getSetting('waitPerMin');
-        if (waitMin > grace) {
-          total += (waitMin - grace) * waitRate;
-        }
-      }
-
-      // Overnight
-      if (document.getElementById('overnightToggle').checked) {
-        const nights = parseInt(document.getElementById('overnightNights').textContent) || 1;
-        total += nights * getSetting('overnightPerNight');
-      }
-
       // Holiday % — applied LAST as percentage of subtotal
       if (document.getElementById('holidayToggle').checked) {
         total += total * (getSetting('holidayPercent') / 100);
@@ -2444,7 +2380,6 @@
 
     // Live recalculation on input changes
     document.getElementById('detourMiles').addEventListener('input', recalculate);
-    document.getElementById('waitMinutes').addEventListener('input', recalculate);
 
     // Notes character count
     document.getElementById('quoteNotes').addEventListener('input', () => {
@@ -2836,22 +2771,6 @@
           lines.push(`  Detour: ${detourMiles} mi (${detourMiles - threshold} mi over threshold) = $${detourFee.toFixed(2)}`);
         }
       }
-      if (document.getElementById('waitToggle').checked) {
-        const waitMin = parseFloat(document.getElementById('waitMinutes').value) || 0;
-        const grace = getSetting('gracePeriod');
-        const waitRate = getSetting('waitPerMin');
-        if (waitMin > grace) {
-          if (!hasSurcharges) { lines.push('Surcharges:'); hasSurcharges = true; }
-          const waitFee = (waitMin - grace) * waitRate;
-          lines.push(`  Wait time: ${waitMin} min (${waitMin - grace} min over grace) = $${waitFee.toFixed(2)}`);
-        }
-      }
-      if (document.getElementById('overnightToggle').checked) {
-        const nights = parseInt(document.getElementById('overnightNights').textContent) || 1;
-        const overnightRate = getSetting('overnightPerNight');
-        if (!hasSurcharges) { lines.push('Surcharges:'); hasSurcharges = true; }
-        lines.push(`  Overnight: ${nights} night(s) @ $${overnightRate.toFixed(2)} = $${(nights * overnightRate).toFixed(2)}`);
-      }
       if (document.getElementById('holidayToggle').checked) {
         const pct = getSetting('holidayPercent');
         if (!hasSurcharges) { lines.push('Surcharges:'); hasSurcharges = true; }
@@ -2886,12 +2805,8 @@
       const surcharges = {};
       if (document.getElementById('detourToggle').checked)
         surcharges.detour = parseFloat(document.getElementById('detourMiles').value) || 0;
-      if (document.getElementById('waitToggle').checked)
-        surcharges.wait = parseFloat(document.getElementById('waitMinutes').value) || 0;
       if (document.getElementById('holidayToggle').checked)
         surcharges.holiday = true;
-      if (document.getElementById('overnightToggle').checked)
-        surcharges.overnight = parseInt(document.getElementById('overnightNights').textContent) || 1;
 
       const entry = {
         date: new Date().toISOString(),
@@ -3195,13 +3110,7 @@
       document.getElementById('detourToggle').checked = false;
       document.getElementById('detourDetail').classList.remove('visible');
       document.getElementById('detourMiles').value = '';
-      document.getElementById('waitToggle').checked = false;
-      document.getElementById('waitDetail').classList.remove('visible');
-      document.getElementById('waitMinutes').value = '';
       document.getElementById('holidayToggle').checked = false;
-      document.getElementById('overnightToggle').checked = false;
-      document.getElementById('overnightDetail').classList.remove('visible');
-      document.getElementById('overnightNights').textContent = '1';
       // Collapse surcharges
       document.getElementById('surchargesHeader').classList.remove('expanded');
       document.getElementById('surchargesContent').classList.remove('visible');
@@ -3215,22 +3124,8 @@
           document.getElementById('surchargesHeader').classList.add('expanded');
           document.getElementById('surchargesContent').classList.add('visible');
         }
-        if (s.wait !== undefined) {
-          document.getElementById('waitToggle').checked = true;
-          document.getElementById('waitDetail').classList.add('visible');
-          document.getElementById('waitMinutes').value = s.wait;
-          document.getElementById('surchargesHeader').classList.add('expanded');
-          document.getElementById('surchargesContent').classList.add('visible');
-        }
         if (s.holiday) {
           document.getElementById('holidayToggle').checked = true;
-          document.getElementById('surchargesHeader').classList.add('expanded');
-          document.getElementById('surchargesContent').classList.add('visible');
-        }
-        if (s.overnight !== undefined) {
-          document.getElementById('overnightToggle').checked = true;
-          document.getElementById('overnightDetail').classList.add('visible');
-          document.getElementById('overnightNights').textContent = s.overnight;
           document.getElementById('surchargesHeader').classList.add('expanded');
           document.getElementById('surchargesContent').classList.add('visible');
         }
