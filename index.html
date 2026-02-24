@@ -938,11 +938,26 @@
     }
 
     .customer-input {
-      font-size: 28px !important;
-      font-weight: 600;
-      text-align: center !important;
-      width: 100% !important;
-      padding: 16px 12px !important;
+      font-size: 15px;
+      font-family: inherit;
+      border: none;
+      background: #F2F2F7;
+      border-radius: 8px;
+      padding: 8px 10px;
+      width: 100%;
+      min-height: 36px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    @media (prefers-color-scheme: dark) {
+      .customer-input {
+        background: #2C2C2E;
+        color: #FFF;
+      }
+      .customer-input::placeholder {
+        color: #636366;
+      }
     }
 
     .customer-suggest {
@@ -1692,17 +1707,6 @@
   <div class="screen active" data-screen="calculator">
     <h1 class="screen-title">DogCalc</h1>
 
-    <!-- Customer -->
-    <div class="section-header">Customer</div>
-    <div class="card">
-      <div class="card-row" style="padding:0;">
-        <div class="customer-input-wrap" style="width:100%;">
-          <input type="text" class="customer-input" id="customerInput" placeholder="Customer name" autocomplete="off">
-          <div class="customer-suggest" id="customerSuggest"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- Route -->
     <div class="section-header">Route</div>
     <div class="card" id="routeCard">
@@ -2117,7 +2121,6 @@
     }
 
     // Track selected customer on calculator
-    let selectedCustomerId = null;
 
     // ===================== TAB NAVIGATION =====================
     const tabs = document.querySelectorAll('.tab[data-screen]');
@@ -2154,6 +2157,13 @@
         <div class="dog-entry-header">
           <span class="dog-entry-title">Dog ${idx}</span>
           <button type="button" class="remove-dog-btn" data-remove="${idx}">&times;</button>
+        </div>
+        <div class="dog-field">
+          <label>Customer</label>
+          <div class="customer-input-wrap">
+            <input type="text" class="customer-input" data-dog-customer="${idx}" placeholder="Customer name" autocomplete="off">
+            <div class="customer-suggest" data-dog-suggest="${idx}"></div>
+          </div>
         </div>
         <div class="dog-field">
           <label>Size</label>
@@ -2223,6 +2233,30 @@
         recalculate();
       });
 
+      // Customer auto-suggest
+      const custInput = entry.querySelector(`[data-dog-customer="${idx}"]`);
+      const custSuggest = entry.querySelector(`[data-dog-suggest="${idx}"]`);
+      custInput.addEventListener('input', () => {
+        const query = custInput.value.trim().toLowerCase();
+        if (!query) { custSuggest.classList.remove('visible'); return; }
+        const customers = loadCustomers();
+        const matches = customers.filter(c => c.name.toLowerCase().includes(query));
+        if (matches.length === 0) { custSuggest.classList.remove('visible'); return; }
+        custSuggest.innerHTML = '';
+        matches.forEach(c => {
+          const item = document.createElement('div');
+          item.className = 'customer-suggest-item';
+          item.textContent = c.name;
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            custInput.value = c.name;
+            custSuggest.classList.remove('visible');
+          });
+          custSuggest.appendChild(item);
+        });
+        custSuggest.classList.add('visible');
+      });
+
       document.getElementById('dogEntries').appendChild(entry);
       recalculate();
       return entry;
@@ -2245,7 +2279,9 @@
         const siblingCount = parseInt(siblingsEl.textContent) || 1;
         const activeAge = entry.querySelector('.age-btn.active');
         const age = activeAge ? activeAge.dataset.age : 'under16';
-        dogs.push({ size, isLitter, siblingCount, age });
+        const custEl = entry.querySelector('.customer-input');
+        const customer = custEl ? custEl.value.trim() : '';
+        dogs.push({ size, isLitter, siblingCount, age, customer });
       });
       return dogs;
     }
@@ -2399,42 +2435,10 @@
     }
 
     // ===================== CUSTOMER AUTO-SUGGEST =====================
-    const customerInput = document.getElementById('customerInput');
-    const customerSuggest = document.getElementById('customerSuggest');
-
-    customerInput.addEventListener('input', () => {
-      selectedCustomerId = null;
-      const query = customerInput.value.trim().toLowerCase();
-      if (!query) {
-        customerSuggest.classList.remove('visible');
-        return;
-      }
-      const customers = loadCustomers();
-      const matches = customers.filter(c => c.name.toLowerCase().includes(query));
-      if (matches.length === 0) {
-        customerSuggest.classList.remove('visible');
-        return;
-      }
-      customerSuggest.innerHTML = '';
-      matches.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'customer-suggest-item';
-        item.textContent = c.name;
-        item.addEventListener('click', (e) => {
-          e.stopPropagation();
-          customerInput.value = c.name;
-          selectedCustomerId = c.id;
-          customerSuggest.classList.remove('visible');
-        });
-        customerSuggest.appendChild(item);
-      });
-      customerSuggest.classList.add('visible');
-    });
-
     // Hide suggestions when clicking outside
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.customer-input-wrap')) {
-        customerSuggest.classList.remove('visible');
+        document.querySelectorAll('.customer-suggest').forEach(s => s.classList.remove('visible'));
       }
     });
 
@@ -2707,12 +2711,14 @@
       const vipMultiplier = getSetting('vipMultiplier');
       const vipPerMile = getSetting('vipPerMile');
 
-      const customerName = customerInput.value.trim();
+      // Collect unique customer names from dogs
+      const customerNames = [...new Set(dogs.map(d => d.customer).filter(Boolean))];
 
       let lines = [];
       if (businessName) lines.push(businessName);
       lines.push('Transport Quote');
-      if (customerName) lines.push(`Customer: ${customerName}`);
+      if (customerNames.length === 1) lines.push(`Customer: ${customerNames[0]}`);
+      else if (customerNames.length > 1) lines.push(`Customers: ${customerNames.join(', ')}`);
       const originName = document.getElementById('originInput').value.trim();
       const destName = document.getElementById('destInput').value.trim();
 
@@ -2742,7 +2748,8 @@
         }
         const sizeSurcharge = getSizeSurcharge(dog.size);
         const sizeLabel = {S:'Small',M:'Medium',L:'Large',XL:'XL'}[dog.size] || dog.size;
-        lines.push(`Dog ${i+1} (${sizeLabel}):`);
+        const custLabel = dog.customer ? ` — ${dog.customer}` : '';
+        lines.push(`Dog ${i+1} (${sizeLabel})${custLabel}:`);
         lines.push(`  Base fee: $${dogBase.toFixed(2)}`);
         lines.push(`  Mileage: $${dogMileage.toFixed(2)}`);
         if (sizeSurcharge > 0) lines.push(`  Size surcharge: $${sizeSurcharge.toFixed(2)}`);
@@ -2822,10 +2829,9 @@
         destination: destName || null
       };
 
-      // Link to customer if selected
-      if (selectedCustomerId) {
-        entry.customerId = selectedCustomerId;
-        entry.customerName = customerName;
+      // Store customer names from dogs for history display
+      if (customerNames.length > 0) {
+        entry.customerName = customerNames.join(', ');
       }
 
       let history = [];
@@ -2833,26 +2839,17 @@
       history.unshift(entry);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 
-      // Prompt to save new customer if name typed but not selected from existing
-      if (customerName && !selectedCustomerId) {
-        const customers = loadCustomers();
-        const exists = customers.find(c => c.name.toLowerCase() === customerName.toLowerCase());
-        if (!exists) {
-          showNewCustomerModal(customerName, (saved) => {
-            if (saved) {
-              const newCust = addCustomer(customerName, '');
-              // Update the just-saved history entry with the new customer ID
-              let h = [];
-              try { h = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) {}
-              if (h.length > 0) {
-                h[0].customerId = newCust.id;
-                h[0].customerName = customerName;
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
-              }
-              selectedCustomerId = newCust.id;
-            }
-          });
-        }
+      // Prompt to save new customers not already in the customer list
+      const existingCustomers = loadCustomers();
+      const newNames = customerNames.filter(name =>
+        !existingCustomers.find(c => c.name.toLowerCase() === name.toLowerCase())
+      );
+      if (newNames.length > 0) {
+        showNewCustomerModal(newNames.join(', '), (saved) => {
+          if (saved) {
+            newNames.forEach(name => addCustomer(name, ''));
+          }
+        });
       }
     });
 
@@ -3036,15 +3033,6 @@
 
     // ===================== RE-QUOTE =====================
     function loadQuoteIntoCalculator(entry) {
-      // Customer
-      if (entry.customerName) {
-        customerInput.value = entry.customerName;
-        selectedCustomerId = entry.customerId || null;
-      } else {
-        customerInput.value = '';
-        selectedCustomerId = null;
-      }
-
       // Route / miles
       if (entry.origin) {
         document.getElementById('originInput').value = entry.origin;
@@ -3083,6 +3071,11 @@
       if (entry.dogs && entry.dogs.length > 0) {
         entry.dogs.forEach(dog => {
           const dogEl = createDogEntry();
+          // Set customer
+          if (dog.customer) {
+            const custInput = dogEl.querySelector('.customer-input');
+            if (custInput) custInput.value = dog.customer;
+          }
           // Set size
           dogEl.querySelectorAll('.size-btn').forEach(b => {
             b.classList.toggle('active', b.dataset.size === dog.size);
@@ -3168,7 +3161,12 @@
 
       let history = [];
       try { history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) {}
-      const customerQuotes = history.filter(h => h.customerId === id);
+      const custName = c.name.toLowerCase();
+      const customerQuotes = history.filter(h =>
+        h.customerId === id ||
+        (h.dogs && h.dogs.some(d => (d.customer || '').toLowerCase() === custName)) ||
+        (h.customerName || '').toLowerCase().includes(custName)
+      );
 
       if (customerQuotes.length === 0) {
         quotesEmpty.style.display = '';
