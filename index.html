@@ -2446,6 +2446,12 @@
     document.getElementById('detourMiles').addEventListener('input', recalculate);
     document.getElementById('waitMinutes').addEventListener('input', recalculate);
 
+    // Notes character count
+    document.getElementById('quoteNotes').addEventListener('input', () => {
+      const len = document.getElementById('quoteNotes').value.length;
+      document.getElementById('quoteNotesCount').textContent = len + ' / 500';
+    });
+
     // Settings inputs also trigger recalculate
     for (const id of Object.values(SETTING_IDS)) {
       const el = document.getElementById(id);
@@ -3007,6 +3013,27 @@
         dateDiv.className = 'history-card-date';
         dateDiv.textContent = dateStr;
 
+        // Status pill (cycles on tap: none → sent → accepted → declined → none)
+        if (entry.status) {
+          const pill = document.createElement('span');
+          pill.className = `status-pill status-pill-${entry.status}`;
+          pill.textContent = entry.status.charAt(0).toUpperCase() + entry.status.slice(1);
+          pill.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cycleStatus(histIdx);
+          });
+          dateDiv.appendChild(pill);
+        } else {
+          const pill = document.createElement('span');
+          pill.className = 'status-pill status-pill-none';
+          pill.textContent = 'Status';
+          pill.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cycleStatus(histIdx);
+          });
+          dateDiv.appendChild(pill);
+        }
+
         const summaryDiv = document.createElement('div');
         summaryDiv.className = 'history-card-summary';
         let summaryText = `${entry.miles} mi · ${entry.tier === 'vip' ? 'VIP' : 'Economy'} · ${dogSummary}`;
@@ -3021,39 +3048,14 @@
         totalDiv.className = 'history-card-total';
         totalDiv.textContent = '$' + entry.total.toFixed(2);
 
-        // Notes preview
-        if (entry.notes) {
-          const notesDiv = document.createElement('div');
-          notesDiv.className = 'history-card-notes';
-          notesDiv.textContent = entry.notes;
-          card.appendChild(notesDiv);
-        }
-
-        // Status buttons
-        const statusRow = document.createElement('div');
-        statusRow.className = 'history-card-status';
-
-        ['Sent', 'Accepted', 'Declined'].forEach(label => {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'status-btn';
-          btn.textContent = label;
-          const key = label.toLowerCase();
-          if (entry.status === key) {
-            btn.classList.add(`active-${key}`);
-          }
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // Toggle: if already active, clear status; otherwise set it
-            let h = [];
-            try { h = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) {}
-            if (histIdx >= 0 && histIdx < h.length) {
-              h[histIdx].status = (h[histIdx].status === key) ? null : key;
-              localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
-            }
-            renderHistory();
-          });
-          statusRow.appendChild(btn);
+        // Re-quote (always visible, bottom-right)
+        const requoteBtn = document.createElement('button');
+        requoteBtn.type = 'button';
+        requoteBtn.className = 'history-requote-btn';
+        requoteBtn.textContent = 'Re-quote';
+        requoteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          loadQuoteIntoCalculator(entry);
         });
 
         const quoteDiv = document.createElement('div');
@@ -3065,24 +3067,24 @@
         copyBtn.className = 'history-copy-btn';
         copyBtn.textContent = 'Copy Quote';
 
-        const requoteBtn = document.createElement('button');
-        requoteBtn.type = 'button';
-        requoteBtn.className = 'history-requote-btn';
-        requoteBtn.textContent = 'Re-Quote';
-
         card.appendChild(dateDiv);
         card.appendChild(summaryDiv);
         card.appendChild(totalDiv);
-        card.appendChild(statusRow);
+        // Notes preview (after total, before re-quote)
+        if (entry.notes) {
+          const notesDiv = document.createElement('div');
+          notesDiv.className = 'history-card-notes';
+          notesDiv.textContent = entry.notes;
+          card.appendChild(notesDiv);
+        }
+        card.appendChild(requoteBtn);
         card.appendChild(quoteDiv);
         card.appendChild(copyBtn);
-        card.appendChild(requoteBtn);
 
         card.addEventListener('click', (e) => {
-          if (e.target.closest('.status-btn') || e.target === copyBtn || e.target === requoteBtn) return;
+          if (e.target.closest('.status-pill') || e.target === copyBtn || e.target === requoteBtn) return;
           quoteDiv.classList.toggle('visible');
           copyBtn.classList.toggle('visible');
-          requoteBtn.classList.toggle('visible');
         });
 
         copyBtn.addEventListener('click', () => {
@@ -3092,17 +3094,24 @@
           }).catch(() => {});
         });
 
-        requoteBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          loadQuoteIntoCalculator(entry);
-        });
-
         list.appendChild(card);
       });
     }
 
     // Search handler
     document.getElementById('historySearch').addEventListener('input', renderHistory);
+
+    function cycleStatus(histIdx) {
+      const order = [null, 'sent', 'accepted', 'declined'];
+      let h = [];
+      try { h = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) {}
+      if (histIdx < 0 || histIdx >= h.length) return;
+      const current = h[histIdx].status || null;
+      const nextIdx = (order.indexOf(current) + 1) % order.length;
+      h[histIdx].status = order[nextIdx];
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+      renderHistory();
+    }
 
     document.getElementById('clearHistoryBtn').addEventListener('click', () => {
       localStorage.removeItem(HISTORY_KEY);
@@ -3229,6 +3238,7 @@
 
       // Notes
       document.getElementById('quoteNotes').value = entry.notes || '';
+      document.getElementById('quoteNotesCount').textContent = (entry.notes || '').length + ' / 500';
 
       // Switch to calculator and recalculate
       switchScreen('calculator');
