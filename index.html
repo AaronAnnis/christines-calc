@@ -187,14 +187,15 @@
       font-family: inherit;
       border: none;
       background: #F2F2F7;
-      border-radius: 8px;
-      padding: 10px 12px;
-      text-align: right;
-      width: 120px;
-      min-height: 44px;
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: left;
+      width: 100%;
+      min-height: 56px;
       outline: none;
       -webkit-appearance: none;
       appearance: none;
+      box-sizing: border-box;
     }
 
     .card input[type="number"]::-webkit-inner-spin-button,
@@ -812,73 +813,19 @@
       }
     }
 
-    .settings-input-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      min-height: 44px;
+    .settings-field {
+      padding: 6px 16px;
     }
-
-    .settings-input-row + .settings-input-row {
-      border-top: 0.5px solid rgba(0,0,0,0.1);
+    .settings-field:first-child {
+      padding-top: 12px;
     }
-
-    @media (prefers-color-scheme: dark) {
-      .settings-input-row + .settings-input-row {
-        border-top-color: rgba(255,255,255,0.1);
-      }
+    .settings-field:last-child {
+      padding-bottom: 12px;
     }
-
-    .settings-input-row label {
-      font-size: 17px;
-      flex-shrink: 0;
-    }
-
-    .settings-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .settings-input-wrap .unit-prefix,
-    .settings-input-wrap .unit-suffix {
-      font-size: 15px;
-      color: #8E8E93;
-      flex-shrink: 0;
-    }
-
-    .settings-input-row input {
-      font-size: 17px;
-      font-family: inherit;
-      border: none;
-      background: #F2F2F7;
-      border-radius: 8px;
-      padding: 10px 12px;
-      text-align: right;
-      width: 100px;
-      min-height: 44px;
-      outline: none;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    .settings-input-row input[type="number"]::-webkit-inner-spin-button,
-    .settings-input-row input[type="number"]::-webkit-outer-spin-button {
+    .settings-field input[type="number"]::-webkit-inner-spin-button,
+    .settings-field input[type="number"]::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .settings-input-row input {
-        background: #2C2C2E;
-        color: #FFF;
-      }
-      .settings-input-wrap .unit-prefix,
-      .settings-input-wrap .unit-suffix {
-        color: #98989D;
-      }
     }
 
     .reset-defaults-btn {
@@ -1330,21 +1277,6 @@
       position: relative;
     }
 
-    .card .location-input {
-      font-size: 17px;
-      font-family: inherit;
-      border: none;
-      background: #F2F2F7;
-      border-radius: 10px;
-      padding: 14px 16px;
-      width: 100%;
-      min-height: 56px;
-      outline: none;
-      -webkit-appearance: none;
-      appearance: none;
-      text-align: left;
-      box-sizing: border-box;
-    }
 
     .route-map-container {
       width: 100%;
@@ -1903,9 +1835,8 @@
     <!-- Business Info -->
     <div class="section-header">Business Info</div>
     <div class="card">
-      <div class="settings-input-row">
-        <label>Business Name</label>
-        <input type="text" id="settingBusinessName" placeholder="Your business name">
+      <div class="settings-field">
+        <input type="text" id="settingBusinessName" placeholder="Business Name">
       </div>
     </div>
     <div class="section-footer">Appears at the bottom of quotes you copy and send to customers.</div>
@@ -1913,17 +1844,14 @@
     <!-- Base Rates -->
     <div class="section-header">Base Rates</div>
     <div class="card">
-      <div class="settings-input-row">
-        <label>Base Fee</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingBaseFee" value="200" min="0" step="any"></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingBaseFee" placeholder="Base Fee ($)" value="200" min="0" step="any">
       </div>
-      <div class="settings-input-row">
-        <label>Per-Mile Rate</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingPerMile" value="1.00" min="0" step="any"><span class="unit-suffix">/mi</span></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingPerMile" placeholder="Per-Mile Rate ($/mi)" value="1.00" min="0" step="any">
       </div>
-      <div class="settings-input-row">
-        <label>Sanitation Fee</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSanitation" value="35" min="0" step="any"></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingSanitation" placeholder="Sanitation Fee ($)" value="35" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Charged on every booking. Base fee covers admin, loading, and insurance. Sanitation covers vehicle cleaning.</div>
@@ -1931,21 +1859,17 @@
     <!-- Size Surcharges -->
     <div class="section-header">Size Surcharges</div>
     <div class="card">
-      <div class="settings-input-row">
-        <label>Small (&lt;25 lbs)</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSizeSmall" value="0" min="0" step="any"></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingSizeSmall" placeholder="Small — under 25 lbs ($)" value="0" min="0" step="any">
       </div>
-      <div class="settings-input-row">
-        <label>Medium (25-50 lbs)</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSizeMedium" value="25" min="0" step="any"></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingSizeMedium" placeholder="Medium — 25-50 lbs ($)" value="25" min="0" step="any">
       </div>
-      <div class="settings-input-row">
-        <label>Large (50-80 lbs)</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSizeLarge" value="50" min="0" step="any"></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingSizeLarge" placeholder="Large — 50-80 lbs ($)" value="50" min="0" step="any">
       </div>
-      <div class="settings-input-row">
-        <label>XL (80+ lbs)</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSizeXL" value="100" min="0" step="any"></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingSizeXL" placeholder="XL — 80+ lbs ($)" value="100" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Extra charge per dog based on weight. Added on top of the base fee for each dog.</div>
@@ -1953,13 +1877,11 @@
     <!-- Litter Rates -->
     <div class="section-header">Litter Rates</div>
     <div class="card">
-      <div class="settings-input-row">
-        <label>Under 16 wks</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingLitterUnder16" value="75" min="0" step="any"><span class="unit-suffix">/ea</span></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingLitterUnder16" placeholder="Under 16 wks ($/ea)" value="75" min="0" step="any">
       </div>
-      <div class="settings-input-row">
-        <label>Over 16 wks</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingLitterOver16" value="100" min="0" step="any"><span class="unit-suffix">/ea</span></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingLitterOver16" placeholder="Over 16 wks ($/ea)" value="100" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Flat rate per sibling puppy from the same litter. The first puppy pays full price; siblings get this discounted rate.</div>
@@ -1967,13 +1889,11 @@
     <!-- VIP Rates -->
     <div class="section-header">VIP Rates</div>
     <div class="card">
-      <div class="settings-input-row">
-        <label>Base Multiplier</label>
-        <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingVipMultiplier" value="2" min="0" step="any"><span class="unit-suffix">x</span></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingVipMultiplier" placeholder="Base Multiplier (x)" value="2" min="0" step="any">
       </div>
-      <div class="settings-input-row">
-        <label>Per-Mile Adder</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">+$</span><input type="number" inputmode="decimal" id="settingVipPerMile" value="2.00" min="0" step="any"><span class="unit-suffix">/mi</span></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingVipPerMile" placeholder="Per-Mile Adder ($/mi)" value="2.00" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Private ride, no other dogs in the van. Base fee is multiplied (2x = double), and extra per-mile rate is added on top of the standard rate.</div>
@@ -1981,17 +1901,14 @@
     <!-- Surcharge Rates -->
     <div class="section-header">Surcharge Rates</div>
     <div class="card">
-      <div class="settings-input-row">
-        <label>Detour Rate</label>
-        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingDetourPerMile" value="1.50" min="0" step="any"><span class="unit-suffix">/mi</span></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingDetourPerMile" placeholder="Detour Rate ($/mi)" value="1.50" min="0" step="any">
       </div>
-      <div class="settings-input-row">
-        <label>Detour Threshold</label>
-        <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingDetourThreshold" value="30" min="0" step="any"><span class="unit-suffix">mi</span></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingDetourThreshold" placeholder="Detour Threshold (mi)" value="30" min="0" step="any">
       </div>
-      <div class="settings-input-row">
-        <label>Holiday Surcharge</label>
-        <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingHolidayPercent" value="20" min="0" step="any"><span class="unit-suffix">%</span></div>
+      <div class="settings-field">
+        <input type="number" inputmode="decimal" id="settingHolidayPercent" placeholder="Holiday Surcharge (%)" value="20" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Detour charges apply per extra mile beyond the threshold. Holiday adds a percentage to the total.</div>
