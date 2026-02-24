@@ -636,6 +636,55 @@
       opacity: 0.8;
     }
 
+    .total-bar-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .total-bar-buttons .generate-quote-btn {
+      flex: 1;
+      margin-top: 0;
+    }
+
+    .share-quote-btn {
+      flex: 1;
+      min-height: 50px;
+      border: 2px solid #34C759;
+      border-radius: 12px;
+      background: transparent;
+      color: #34C759;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .share-quote-btn:active {
+      opacity: 0.8;
+    }
+
+    .share-quote-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .share-quote-btn {
+        border-color: #30D158;
+        color: #30D158;
+      }
+    }
+
     /* --- Tab Bar --- */
     .tab-bar {
       position: fixed;
@@ -786,6 +835,44 @@
       .history-card-date { color: #8E8E93; }
       .history-card-summary { color: #EBEBF5; }
       .history-card-total { color: #FFF; }
+    }
+
+    /* --- Earnings Dashboard --- */
+    .earnings-dashboard {
+      display: flex;
+      gap: 12px;
+      padding: 0 16px;
+      margin-bottom: 16px;
+    }
+    .earnings-card {
+      flex: 1;
+      background: #FFF;
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .earnings-label {
+      font-size: 13px;
+      color: #8E8E93;
+      margin-bottom: 4px;
+    }
+    .earnings-amount {
+      font-size: 24px;
+      font-weight: 700;
+      color: #34C759;
+    }
+    .earnings-count {
+      font-size: 12px;
+      color: #8E8E93;
+      margin-top: 2px;
+    }
+    @media (prefers-color-scheme: dark) {
+      .earnings-card {
+        background: #1C1C1E;
+      }
+      .earnings-amount {
+        color: #30D158;
+      }
     }
 
     .empty-state {
@@ -1108,6 +1195,29 @@
         background: #2C2C2E;
         color: #FFF;
       }
+    }
+
+    .book-again-btn {
+      display: block;
+      width: 100%;
+      min-height: 50px;
+      border: none;
+      border-radius: 12px;
+      background: #007AFF;
+      color: #FFF;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 14px 16px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .book-again-btn:active {
+      opacity: 0.8;
+    }
+    .book-again-btn:disabled {
+      background: #8E8E93;
+      opacity: 0.5;
     }
 
     .delete-customer-btn {
@@ -1789,6 +1899,19 @@
   <div class="screen" data-screen="history">
     <h1 class="screen-title">Quote History</h1>
 
+    <div class="earnings-dashboard" id="earningsDashboard">
+      <div class="earnings-card">
+        <div class="earnings-label">This Week</div>
+        <div class="earnings-amount" id="earningsWeek">$0</div>
+        <div class="earnings-count" id="earningsWeekCount">0 quotes</div>
+      </div>
+      <div class="earnings-card">
+        <div class="earnings-label">This Month</div>
+        <div class="earnings-amount" id="earningsMonth">$0</div>
+        <div class="earnings-count" id="earningsMonthCount">0 quotes</div>
+      </div>
+    </div>
+
     <div class="history-search-wrap">
       <input type="text" class="history-search-input" id="historySearch" placeholder="Search quotes..." autocomplete="off">
     </div>
@@ -1840,6 +1963,7 @@
         <div class="empty-state" id="customerQuotesEmpty" style="padding:24px 16px;">No quotes for this customer</div>
       </div>
 
+      <button type="button" class="book-again-btn" id="bookAgainBtn">Book Again</button>
       <button type="button" class="delete-customer-btn" id="deleteCustomerBtn">Delete Customer</button>
     </div>
   </div>
@@ -1944,13 +2068,34 @@
     </div>
     <div class="section-footer">Detour charges apply per extra mile beyond the threshold. Holiday adds a percentage to the total.</div>
 
+    <!-- Fuel / Profit -->
+    <div class="section-header">Fuel &amp; Profit</div>
+    <div class="card">
+      <div class="settings-field">
+        <label>Van MPG</label>
+        <input type="number" inputmode="decimal" id="settingVanMPG" value="20" min="0" step="any">
+      </div>
+      <div class="settings-field">
+        <label>Gas Price ($/gal)</label>
+        <input type="number" inputmode="decimal" id="settingGasPrice" value="3.50" min="0" step="any">
+      </div>
+    </div>
+    <div class="section-footer">Used to calculate fuel cost and profit on each quote. Fuel cost = round-trip miles / MPG x price per gallon.</div>
+
     <button type="button" class="reset-defaults-btn" id="resetDefaultsBtn">Reset to Defaults</button>
   </div>
 
   <!-- ==================== TOTAL BAR (Calculator only) ==================== -->
   <div class="total-bar visible" id="totalBar">
     <div class="total-amount" id="totalAmount">$0.00</div>
-    <button type="button" class="generate-quote-btn" id="generateQuoteBtn">Generate Quote</button>
+    <div class="total-profit-line" id="totalProfitLine" style="display:none;font-size:13px;color:#8E8E93;text-align:center;margin-top:-4px;margin-bottom:4px;"></div>
+    <div class="total-bar-buttons">
+      <button type="button" class="generate-quote-btn" id="generateQuoteBtn">Generate Quote</button>
+      <button type="button" class="share-quote-btn" id="shareQuoteBtn">
+        <svg viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        Share
+      </button>
+    </div>
   </div>
 
   <!-- ==================== TAB BAR ==================== -->
@@ -1996,7 +2141,8 @@
       litterUnder16: 75, litterOver16: 100,
       vipMultiplier: 2, vipPerMile: 2.00,
       detourPerMile: 1.50, detourThreshold: 30,
-      holidayPercent: 20
+      holidayPercent: 20,
+      vanMPG: 20, gasPrice: 3.50
     };
 
     const SETTINGS_KEY = 'dogcalc_settings';
@@ -2019,7 +2165,9 @@
       vipPerMile: 'settingVipPerMile',
       detourPerMile: 'settingDetourPerMile',
       detourThreshold: 'settingDetourThreshold',
-      holidayPercent: 'settingHolidayPercent'
+      holidayPercent: 'settingHolidayPercent',
+      vanMPG: 'settingVanMPG',
+      gasPrice: 'settingGasPrice'
     };
 
     // ===================== SETTINGS PERSISTENCE =====================
@@ -2386,6 +2534,19 @@
     function recalculate() {
       const total = calculateTotal();
       document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+
+      const miles = parseFloat(document.getElementById('milesInput').value) || 0;
+      const vanMPG = getSetting('vanMPG');
+      const gasPrice = getSetting('gasPrice');
+      const profitLine = document.getElementById('totalProfitLine');
+      if (vanMPG > 0 && miles > 0) {
+        const fuel = (miles * 2 / vanMPG) * gasPrice;
+        const profit = total - fuel;
+        profitLine.textContent = `Fuel: $${fuel.toFixed(0)} · Profit: $${profit.toFixed(0)}`;
+        profitLine.style.display = '';
+      } else {
+        profitLine.style.display = 'none';
+      }
     }
 
     // Live recalculation on input changes
@@ -2731,8 +2892,8 @@
       return Promise.resolve();
     }
 
-    // ===================== GENERATE QUOTE =====================
-    document.getElementById('generateQuoteBtn').addEventListener('click', () => {
+    // ===================== BUILD QUOTE TEXT =====================
+    function buildQuoteText() {
       const miles = parseFloat(document.getElementById('milesInput').value) || 0;
       const tier = getActiveTier();
       const dogs = getDogData();
@@ -2745,7 +2906,6 @@
       const vipMultiplier = getSetting('vipMultiplier');
       const vipPerMile = getSetting('vipPerMile');
 
-      // Collect unique customer names from dogs
       const customerNames = [...new Set(dogs.map(d => d.customer).filter(Boolean))];
       const unnamedDogs = dogs.filter(d => !d.customer);
 
@@ -2757,7 +2917,6 @@
       const originName = document.getElementById('originInput').value.trim();
       const destName = document.getElementById('destInput').value.trim();
 
-      // Build route names for quote
       const routeNames = [];
       if (originName) routeNames.push(originName.split(',')[0]);
       stopCoords.forEach(s => { if (s) routeNames.push(s.name.split(',')[0]); });
@@ -2765,14 +2924,13 @@
 
       lines.push('─'.repeat(28));
       if (routeNames.length >= 2) {
-        lines.push(`Trip: ${routeNames.join(' → ')} (${miles} miles, ${tier === 'vip' ? 'VIP' : 'Economy'})`);
+        lines.push(`Trip: ${routeNames.join(' \u2192 ')} (${miles} miles, ${tier === 'vip' ? 'VIP' : 'Economy'})`);
       } else {
         lines.push(`Service: ${tier === 'vip' ? 'VIP' : 'Economy'}`);
         lines.push(`Distance: ${miles} miles`);
       }
       lines.push('');
 
-      // Helper to calculate one dog's total
       function calcDogTotal(dog) {
         let dogBase, dogMileage;
         if (tier === 'vip') {
@@ -2793,7 +2951,6 @@
         return dogTotal;
       }
 
-      // Helper to render one dog's line items
       function renderDogLines(dog, label) {
         let dogBase, dogMileage;
         if (tier === 'vip') {
@@ -2820,7 +2977,6 @@
         }
       }
 
-      // Group dogs by customer and render with subtotals
       if (customerNames.length > 0) {
         customerNames.forEach(name => {
           const custDogs = dogs.filter(d => d.customer === name);
@@ -2835,7 +2991,6 @@
         });
       }
 
-      // Render any dogs without a customer name
       if (unnamedDogs.length > 0) {
         if (customerNames.length > 0) lines.push('Other:');
         unnamedDogs.forEach((dog, i) => {
@@ -2843,7 +2998,6 @@
           if (indent) {
             renderDogLines(dog, `Dog ${i + 1}`);
           } else {
-            // No customers at all — flat list like before
             let dogBase, dogMileage;
             if (tier === 'vip') {
               dogBase = baseFee * vipMultiplier;
@@ -2878,7 +3032,6 @@
         }
       }
 
-      // Surcharges
       let hasSurcharges = false;
       if (document.getElementById('detourToggle').checked) {
         const detourMiles = parseFloat(document.getElementById('detourMiles').value) || 0;
@@ -2906,20 +3059,32 @@
         lines.push(`  ${quoteNotesText}`);
         lines.push('');
       }
+      // Fuel cost & profit
+      const vanMPG = getSetting('vanMPG');
+      const gasPrice = getSetting('gasPrice');
+      let fuelCost = 0;
+      if (vanMPG > 0 && miles > 0) {
+        fuelCost = (miles * 2 / vanMPG) * gasPrice; // round-trip
+      }
+      const profit = total - fuelCost;
+
       lines.push('─'.repeat(28));
       lines.push(`TRIP TOTAL: $${total.toFixed(2)}`);
+      if (fuelCost > 0) {
+        lines.push(`Fuel cost (est.): $${fuelCost.toFixed(2)}`);
+        lines.push(`Profit (est.): $${profit.toFixed(2)}`);
+      }
 
-      const quoteText = lines.join('\n');
+      return {
+        quoteText: lines.join('\n'),
+        miles, tier, dogs, total, customerNames,
+        originName, destName,
+        quoteNotesText, fuelCost, profit
+      };
+    }
 
-      // Copy to clipboard
-      copyToClipboard(quoteText).then(() => {
-        const btn = document.getElementById('generateQuoteBtn');
-        const orig = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = orig; }, 1500);
-      }).catch(() => {});
-
-      // Save to history
+    // ===================== SAVE QUOTE TO HISTORY =====================
+    function saveQuoteToHistory(data) {
       const surcharges = {};
       if (document.getElementById('detourToggle').checked)
         surcharges.detour = parseFloat(document.getElementById('detourMiles').value) || 0;
@@ -2928,21 +3093,20 @@
 
       const entry = {
         date: new Date().toISOString(),
-        miles,
-        tier,
-        dogs,
+        miles: data.miles,
+        tier: data.tier,
+        dogs: data.dogs,
         surcharges,
-        total,
-        quoteText,
-        notes: quoteNotesText || null,
+        total: data.total,
+        quoteText: data.quoteText,
+        notes: data.quoteNotesText || null,
         status: null,
-        origin: originName || null,
-        destination: destName || null
+        origin: data.originName || null,
+        destination: data.destName || null
       };
 
-      // Store customer names from dogs for history display
-      if (customerNames.length > 0) {
-        entry.customerName = customerNames.join(', ');
+      if (data.customerNames.length > 0) {
+        entry.customerName = data.customerNames.join(', ');
       }
 
       let history = [];
@@ -2950,9 +3114,8 @@
       history.unshift(entry);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 
-      // Prompt to save new customers not already in the customer list
       const existingCustomers = loadCustomers();
-      const newNames = customerNames.filter(name =>
+      const newNames = data.customerNames.filter(name =>
         !existingCustomers.find(c => c.name.toLowerCase() === name.toLowerCase())
       );
       if (newNames.length > 0) {
@@ -2962,12 +3125,92 @@
           }
         });
       }
+    }
+
+    // ===================== GENERATE QUOTE (copy to clipboard) =====================
+    document.getElementById('generateQuoteBtn').addEventListener('click', () => {
+      const data = buildQuoteText();
+
+      copyToClipboard(data.quoteText).then(() => {
+        const btn = document.getElementById('generateQuoteBtn');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1500);
+      }).catch(() => {});
+
+      saveQuoteToHistory(data);
+    });
+
+    // ===================== SHARE QUOTE =====================
+    document.getElementById('shareQuoteBtn').addEventListener('click', () => {
+      const data = buildQuoteText();
+
+      if (navigator.share) {
+        navigator.share({
+          text: data.quoteText
+        }).then(() => {
+          const btn = document.getElementById('shareQuoteBtn');
+          const origHTML = btn.innerHTML;
+          btn.textContent = 'Shared!';
+          setTimeout(() => { btn.innerHTML = origHTML; }, 1500);
+        }).catch((err) => {
+          // User cancelled — not an error
+          if (err.name !== 'AbortError') {
+            // Fallback to clipboard
+            copyToClipboard(data.quoteText).then(() => {
+              const btn = document.getElementById('shareQuoteBtn');
+              const origHTML = btn.innerHTML;
+              btn.textContent = 'Copied!';
+              setTimeout(() => { btn.innerHTML = origHTML; }, 1500);
+            }).catch(() => {});
+          }
+        });
+      } else {
+        // Web Share API not available — fallback to clipboard
+        copyToClipboard(data.quoteText).then(() => {
+          const btn = document.getElementById('shareQuoteBtn');
+          const origHTML = btn.innerHTML;
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.innerHTML = origHTML; }, 1500);
+        }).catch(() => {});
+      }
+
+      saveQuoteToHistory(data);
     });
 
     // ===================== HISTORY =====================
+    function updateEarningsDashboard(history) {
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      let weekTotal = 0, weekCount = 0, monthTotal = 0, monthCount = 0;
+      history.forEach(entry => {
+        const d = new Date(entry.date);
+        if (d >= startOfMonth) {
+          monthTotal += entry.total || 0;
+          monthCount++;
+        }
+        if (d >= startOfWeek) {
+          weekTotal += entry.total || 0;
+          weekCount++;
+        }
+      });
+
+      document.getElementById('earningsWeek').textContent = '$' + weekTotal.toFixed(0);
+      document.getElementById('earningsWeekCount').textContent = weekCount + (weekCount === 1 ? ' quote' : ' quotes');
+      document.getElementById('earningsMonth').textContent = '$' + monthTotal.toFixed(0);
+      document.getElementById('earningsMonthCount').textContent = monthCount + (monthCount === 1 ? ' quote' : ' quotes');
+
+      document.getElementById('earningsDashboard').style.display = history.length > 0 ? '' : 'none';
+    }
+
     function renderHistory() {
       let history = [];
       try { history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) {}
+      updateEarningsDashboard(history);
       const list = document.getElementById('historyList');
       const empty = document.getElementById('historyEmpty');
       const searchQuery = (document.getElementById('historySearch').value || '').trim().toLowerCase();
@@ -3279,6 +3522,9 @@
         (h.customerName || '').toLowerCase().includes(custName)
       );
 
+      // Enable/disable Book Again button
+      document.getElementById('bookAgainBtn').disabled = customerQuotes.length === 0;
+
       if (customerQuotes.length === 0) {
         quotesEmpty.style.display = '';
       } else {
@@ -3407,6 +3653,52 @@
       currentCustomerId = null;
       renderCustomerList();
       showCustomerList();
+    });
+
+    // ===================== BOOK AGAIN =====================
+    document.getElementById('bookAgainBtn').addEventListener('click', () => {
+      if (!currentCustomerId) return;
+      const customers = loadCustomers();
+      const c = customers.find(c => c.id === currentCustomerId);
+      if (!c) return;
+
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch(e) {}
+      const custName = c.name.toLowerCase();
+      const customerQuotes = history.filter(h =>
+        h.customerId === currentCustomerId ||
+        (h.dogs && h.dogs.some(d => (d.customer || '').toLowerCase() === custName)) ||
+        (h.customerName || '').toLowerCase().includes(custName)
+      );
+
+      if (customerQuotes.length === 0) return;
+
+      // Use the most recent quote
+      const lastQuote = customerQuotes[0];
+
+      // Build a new entry with just this customer's dogs
+      // Route fields left empty — routes are always different
+      const entry = {
+        miles: 0,
+        tier: lastQuote.tier,
+        origin: '',
+        destination: '',
+        surcharges: {},
+        notes: '',
+        dogs: []
+      };
+
+      // Get dogs for this customer from the last quote
+      if (lastQuote.dogs) {
+        entry.dogs = lastQuote.dogs
+          .filter(d => (d.customer || '').toLowerCase() === custName || !d.customer)
+          .map(d => ({ ...d, customer: c.name }));
+        if (entry.dogs.length === 0) {
+          entry.dogs = lastQuote.dogs.map(d => ({ ...d, customer: c.name }));
+        }
+      }
+
+      loadQuoteIntoCalculator(entry);
     });
 
     // ===================== NEW CUSTOMER MODAL =====================
