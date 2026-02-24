@@ -822,6 +822,13 @@
     .settings-field:last-child {
       padding-bottom: 12px;
     }
+    .settings-field label {
+      display: block;
+      font-size: 13px;
+      color: #8E8E93;
+      margin-bottom: 4px;
+      padding-left: 4px;
+    }
     .settings-field input[type="number"]::-webkit-inner-spin-button,
     .settings-field input[type="number"]::-webkit-outer-spin-button {
       -webkit-appearance: none;
@@ -1836,7 +1843,8 @@
     <div class="section-header">Business Info</div>
     <div class="card">
       <div class="settings-field">
-        <input type="text" id="settingBusinessName" placeholder="Business Name">
+        <label>Business Name</label>
+        <input type="text" id="settingBusinessName" placeholder="Your business name">
       </div>
     </div>
     <div class="section-footer">Appears at the bottom of quotes you copy and send to customers.</div>
@@ -1845,13 +1853,16 @@
     <div class="section-header">Base Rates</div>
     <div class="card">
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingBaseFee" placeholder="Base Fee ($)" value="200" min="0" step="any">
+        <label>Base Fee ($)</label>
+        <input type="number" inputmode="decimal" id="settingBaseFee" value="200" min="0" step="any">
       </div>
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingPerMile" placeholder="Per-Mile Rate ($/mi)" value="1.00" min="0" step="any">
+        <label>Per-Mile Rate ($/mi)</label>
+        <input type="number" inputmode="decimal" id="settingPerMile" value="1.00" min="0" step="any">
       </div>
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingSanitation" placeholder="Sanitation Fee ($)" value="35" min="0" step="any">
+        <label>Sanitation Fee ($)</label>
+        <input type="number" inputmode="decimal" id="settingSanitation" value="35" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Charged on every booking. Base fee covers admin, loading, and insurance. Sanitation covers vehicle cleaning.</div>
@@ -1860,16 +1871,20 @@
     <div class="section-header">Size Surcharges</div>
     <div class="card">
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingSizeSmall" placeholder="Small — under 25 lbs ($)" value="0" min="0" step="any">
+        <label>Small — under 25 lbs ($)</label>
+        <input type="number" inputmode="decimal" id="settingSizeSmall" value="0" min="0" step="any">
       </div>
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingSizeMedium" placeholder="Medium — 25-50 lbs ($)" value="25" min="0" step="any">
+        <label>Medium — 25-50 lbs ($)</label>
+        <input type="number" inputmode="decimal" id="settingSizeMedium" value="25" min="0" step="any">
       </div>
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingSizeLarge" placeholder="Large — 50-80 lbs ($)" value="50" min="0" step="any">
+        <label>Large — 50-80 lbs ($)</label>
+        <input type="number" inputmode="decimal" id="settingSizeLarge" value="50" min="0" step="any">
       </div>
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingSizeXL" placeholder="XL — 80+ lbs ($)" value="100" min="0" step="any">
+        <label>XL — 80+ lbs ($)</label>
+        <input type="number" inputmode="decimal" id="settingSizeXL" value="100" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Extra charge per dog based on weight. Added on top of the base fee for each dog.</div>
@@ -1878,10 +1893,12 @@
     <div class="section-header">Litter Rates</div>
     <div class="card">
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingLitterUnder16" placeholder="Under 16 wks ($/ea)" value="75" min="0" step="any">
+        <label>Under 16 wks ($/ea)</label>
+        <input type="number" inputmode="decimal" id="settingLitterUnder16" value="75" min="0" step="any">
       </div>
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingLitterOver16" placeholder="Over 16 wks ($/ea)" value="100" min="0" step="any">
+        <label>Over 16 wks ($/ea)</label>
+        <input type="number" inputmode="decimal" id="settingLitterOver16" value="100" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Flat rate per sibling puppy from the same litter. The first puppy pays full price; siblings get this discounted rate.</div>
@@ -1890,10 +1907,12 @@
     <div class="section-header">VIP Rates</div>
     <div class="card">
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingVipMultiplier" placeholder="Base Multiplier (x)" value="2" min="0" step="any">
+        <label>Base Multiplier (x)</label>
+        <input type="number" inputmode="decimal" id="settingVipMultiplier" value="2" min="0" step="any">
       </div>
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingVipPerMile" placeholder="Per-Mile Adder ($/mi)" value="2.00" min="0" step="any">
+        <label>Per-Mile Adder ($/mi)</label>
+        <input type="number" inputmode="decimal" id="settingVipPerMile" value="2.00" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Private ride, no other dogs in the van. Base fee is multiplied (2x = double), and extra per-mile rate is added on top of the standard rate.</div>
@@ -1902,13 +1921,16 @@
     <div class="section-header">Surcharge Rates</div>
     <div class="card">
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingDetourPerMile" placeholder="Detour Rate ($/mi)" value="1.50" min="0" step="any">
+        <label>Detour Rate ($/mi)</label>
+        <input type="number" inputmode="decimal" id="settingDetourPerMile" value="1.50" min="0" step="any">
       </div>
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingDetourThreshold" placeholder="Detour Threshold (mi)" value="30" min="0" step="any">
+        <label>Detour Threshold (mi)</label>
+        <input type="number" inputmode="decimal" id="settingDetourThreshold" value="30" min="0" step="any">
       </div>
       <div class="settings-field">
-        <input type="number" inputmode="decimal" id="settingHolidayPercent" placeholder="Holiday Surcharge (%)" value="20" min="0" step="any">
+        <label>Holiday Surcharge (%)</label>
+        <input type="number" inputmode="decimal" id="settingHolidayPercent" value="20" min="0" step="any">
       </div>
     </div>
     <div class="section-footer">Detour charges apply per extra mile beyond the threshold. Holiday adds a percentage to the total.</div>
