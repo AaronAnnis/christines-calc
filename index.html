@@ -797,6 +797,19 @@
     }
 
     /* --- Settings Screen --- */
+    .section-footer {
+      padding: 6px 16px 12px;
+      font-size: 13px;
+      color: #8E8E93;
+      line-height: 1.35;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .section-footer {
+        color: #98989D;
+      }
+    }
+
     .settings-input-row {
       display: flex;
       align-items: center;
@@ -1035,6 +1048,7 @@
         <input type="text" id="settingBusinessName" placeholder="Your business name">
       </div>
     </div>
+    <div class="section-footer">Appears at the bottom of quotes you copy and send to customers.</div>
 
     <!-- Base Rates -->
     <div class="section-header">Base Rates</div>
@@ -1052,6 +1066,7 @@
         <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSanitation" value="35" min="0" step="any"></div>
       </div>
     </div>
+    <div class="section-footer">Charged on every booking. Base fee covers admin, loading, and insurance. Sanitation covers vehicle cleaning.</div>
 
     <!-- Size Surcharges -->
     <div class="section-header">Size Surcharges</div>
@@ -1073,6 +1088,7 @@
         <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSizeXL" value="100" min="0" step="any"></div>
       </div>
     </div>
+    <div class="section-footer">Extra charge per dog based on weight. Added on top of the base fee for each dog.</div>
 
     <!-- Litter Rates -->
     <div class="section-header">Litter Rates</div>
@@ -1086,6 +1102,7 @@
         <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingLitterOver16" value="100" min="0" step="any"><span class="unit-suffix">/ea</span></div>
       </div>
     </div>
+    <div class="section-footer">Flat rate per sibling puppy from the same litter. The first puppy pays full price; siblings get this discounted rate.</div>
 
     <!-- VIP Rates -->
     <div class="section-header">VIP Rates</div>
@@ -1099,6 +1116,7 @@
         <div class="settings-input-wrap"><span class="unit-prefix">+$</span><input type="number" inputmode="decimal" id="settingVipPerMile" value="2.00" min="0" step="any"><span class="unit-suffix">/mi</span></div>
       </div>
     </div>
+    <div class="section-footer">Private ride, no other dogs in the van. Base fee is multiplied (2x = double), and extra per-mile rate is added on top of the standard rate.</div>
 
     <!-- Surcharge Rates -->
     <div class="section-header">Surcharge Rates</div>
@@ -1128,6 +1146,7 @@
         <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingOvernightPerNight" value="97" min="0" step="any"><span class="unit-suffix">/night</span></div>
       </div>
     </div>
+    <div class="section-footer">Detour charges apply per extra mile beyond the threshold. Wait time charges after the grace period. Holiday adds a percentage to the total. Overnight is per night when a trip requires a stopover.</div>
 
     <button type="button" class="reset-defaults-btn" id="resetDefaultsBtn">Reset to Defaults</button>
   </div>
