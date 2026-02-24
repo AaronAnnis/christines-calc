@@ -2738,6 +2738,7 @@
 
       // Collect unique customer names from dogs
       const customerNames = [...new Set(dogs.map(d => d.customer).filter(Boolean))];
+      const unnamedDogs = dogs.filter(d => !d.customer);
 
       let lines = [];
       if (businessName) lines.push(businessName);
@@ -2762,7 +2763,29 @@
       }
       lines.push('');
 
-      dogs.forEach((dog, i) => {
+      // Helper to calculate one dog's total
+      function calcDogTotal(dog) {
+        let dogBase, dogMileage;
+        if (tier === 'vip') {
+          dogBase = baseFee * vipMultiplier;
+          dogMileage = miles * (perMile + vipPerMile);
+        } else {
+          dogBase = baseFee;
+          dogMileage = miles * perMile;
+        }
+        const sizeSurcharge = getSizeSurcharge(dog.size);
+        let dogTotal = dogBase + dogMileage + sizeSurcharge + sanitation;
+        if (dog.isLitter && dog.siblingCount > 1) {
+          const litterRate = dog.age === 'under16'
+            ? getSetting('litterUnder16')
+            : getSetting('litterOver16');
+          dogTotal += (dog.siblingCount - 1) * litterRate;
+        }
+        return dogTotal;
+      }
+
+      // Helper to render one dog's line items
+      function renderDogLines(dog, label) {
         let dogBase, dogMileage;
         if (tier === 'vip') {
           dogBase = baseFee * vipMultiplier;
@@ -2773,23 +2796,78 @@
         }
         const sizeSurcharge = getSizeSurcharge(dog.size);
         const sizeLabel = {S:'Small',M:'Medium',L:'Large',XL:'XL'}[dog.size] || dog.size;
-        const custLabel = dog.customer ? ` — ${dog.customer}` : '';
-        lines.push(`Dog ${i+1} (${sizeLabel})${custLabel}:`);
-        lines.push(`  Base fee: $${dogBase.toFixed(2)}`);
-        lines.push(`  Mileage: $${dogMileage.toFixed(2)}`);
-        if (sizeSurcharge > 0) lines.push(`  Size surcharge: $${sizeSurcharge.toFixed(2)}`);
-        lines.push(`  Sanitation: $${sanitation.toFixed(2)}`);
-
+        lines.push(`  ${label} (${sizeLabel}):`);
+        lines.push(`    Base fee: $${dogBase.toFixed(2)}`);
+        lines.push(`    Mileage: $${dogMileage.toFixed(2)}`);
+        if (sizeSurcharge > 0) lines.push(`    Size surcharge: $${sizeSurcharge.toFixed(2)}`);
+        lines.push(`    Sanitation: $${sanitation.toFixed(2)}`);
         if (dog.isLitter && dog.siblingCount > 1) {
           const litterRate = dog.age === 'under16'
             ? getSetting('litterUnder16')
             : getSetting('litterOver16');
           const siblingTotal = (dog.siblingCount - 1) * litterRate;
           const ageLabel = dog.age === 'under16' ? 'under 16 wks' : 'over 16 wks';
-          lines.push(`  Litter: ${dog.siblingCount - 1} sibling(s) (${ageLabel}) @ $${litterRate.toFixed(2)} = $${siblingTotal.toFixed(2)}`);
+          lines.push(`    Litter: ${dog.siblingCount - 1} sibling(s) (${ageLabel}) @ $${litterRate.toFixed(2)} = $${siblingTotal.toFixed(2)}`);
         }
-        lines.push('');
-      });
+      }
+
+      // Group dogs by customer and render with subtotals
+      if (customerNames.length > 0) {
+        customerNames.forEach(name => {
+          const custDogs = dogs.filter(d => d.customer === name);
+          lines.push(`${name}:`);
+          let custTotal = 0;
+          custDogs.forEach((dog, i) => {
+            renderDogLines(dog, `Dog ${i + 1}`);
+            custTotal += calcDogTotal(dog);
+          });
+          lines.push(`  Subtotal: $${custTotal.toFixed(2)}`);
+          lines.push('');
+        });
+      }
+
+      // Render any dogs without a customer name
+      if (unnamedDogs.length > 0) {
+        if (customerNames.length > 0) lines.push('Other:');
+        unnamedDogs.forEach((dog, i) => {
+          const indent = customerNames.length > 0;
+          if (indent) {
+            renderDogLines(dog, `Dog ${i + 1}`);
+          } else {
+            // No customers at all — flat list like before
+            let dogBase, dogMileage;
+            if (tier === 'vip') {
+              dogBase = baseFee * vipMultiplier;
+              dogMileage = miles * (perMile + vipPerMile);
+            } else {
+              dogBase = baseFee;
+              dogMileage = miles * perMile;
+            }
+            const sizeSurcharge = getSizeSurcharge(dog.size);
+            const sizeLabel = {S:'Small',M:'Medium',L:'Large',XL:'XL'}[dog.size] || dog.size;
+            lines.push(`Dog ${i+1} (${sizeLabel}):`);
+            lines.push(`  Base fee: $${dogBase.toFixed(2)}`);
+            lines.push(`  Mileage: $${dogMileage.toFixed(2)}`);
+            if (sizeSurcharge > 0) lines.push(`  Size surcharge: $${sizeSurcharge.toFixed(2)}`);
+            lines.push(`  Sanitation: $${sanitation.toFixed(2)}`);
+            if (dog.isLitter && dog.siblingCount > 1) {
+              const litterRate = dog.age === 'under16'
+                ? getSetting('litterUnder16')
+                : getSetting('litterOver16');
+              const siblingTotal = (dog.siblingCount - 1) * litterRate;
+              const ageLabel = dog.age === 'under16' ? 'under 16 wks' : 'over 16 wks';
+              lines.push(`  Litter: ${dog.siblingCount - 1} sibling(s) (${ageLabel}) @ $${litterRate.toFixed(2)} = $${siblingTotal.toFixed(2)}`);
+            }
+            lines.push('');
+          }
+        });
+        if (customerNames.length > 0) {
+          let otherTotal = 0;
+          unnamedDogs.forEach(dog => { otherTotal += calcDogTotal(dog); });
+          lines.push(`  Subtotal: $${otherTotal.toFixed(2)}`);
+          lines.push('');
+        }
+      }
 
       // Surcharges
       let hasSurcharges = false;
@@ -2806,7 +2884,6 @@
       if (document.getElementById('holidayToggle').checked) {
         const pct = getSetting('holidayPercent');
         if (!hasSurcharges) { lines.push('Surcharges:'); hasSurcharges = true; }
-        // Calculate subtotal before holiday
         const subtotal = total / (1 + pct / 100);
         const holidayFee = total - subtotal;
         lines.push(`  Holiday/Weekend: ${pct}% = $${holidayFee.toFixed(2)}`);
@@ -2821,7 +2898,7 @@
         lines.push('');
       }
       lines.push('─'.repeat(28));
-      lines.push(`TOTAL: $${total.toFixed(2)}`);
+      lines.push(`TRIP TOTAL: $${total.toFixed(2)}`);
 
       const quoteText = lines.join('\n');
 
