@@ -820,6 +820,20 @@
       flex-shrink: 0;
     }
 
+    .settings-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .settings-input-wrap .unit-prefix,
+    .settings-input-wrap .unit-suffix {
+      font-size: 15px;
+      color: #8E8E93;
+      flex-shrink: 0;
+    }
+
     .settings-input-row input {
       font-size: 17px;
       font-family: inherit;
@@ -828,7 +842,7 @@
       border-radius: 8px;
       padding: 10px 12px;
       text-align: right;
-      width: 120px;
+      width: 100px;
       min-height: 44px;
       outline: none;
       -webkit-appearance: none;
@@ -845,6 +859,10 @@
       .settings-input-row input {
         background: #2C2C2E;
         color: #FFF;
+      }
+      .settings-input-wrap .unit-prefix,
+      .settings-input-wrap .unit-suffix {
+        color: #98989D;
       }
     }
 
@@ -1023,15 +1041,15 @@
     <div class="card">
       <div class="settings-input-row">
         <label>Base Fee</label>
-        <input type="number" inputmode="decimal" id="settingBaseFee" value="200" min="0" step="any">
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingBaseFee" value="200" min="0" step="any"></div>
       </div>
       <div class="settings-input-row">
         <label>Per-Mile Rate</label>
-        <input type="number" inputmode="decimal" id="settingPerMile" value="1.00" min="0" step="any">
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingPerMile" value="1.00" min="0" step="any"><span class="unit-suffix">/mi</span></div>
       </div>
       <div class="settings-input-row">
         <label>Sanitation Fee</label>
-        <input type="number" inputmode="decimal" id="settingSanitation" value="35" min="0" step="any">
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSanitation" value="35" min="0" step="any"></div>
       </div>
     </div>
 
@@ -1039,20 +1057,20 @@
     <div class="section-header">Size Surcharges</div>
     <div class="card">
       <div class="settings-input-row">
-        <label>Small</label>
-        <input type="number" inputmode="decimal" id="settingSizeSmall" value="0" min="0" step="any">
+        <label>Small (&lt;25 lbs)</label>
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSizeSmall" value="0" min="0" step="any"></div>
       </div>
       <div class="settings-input-row">
-        <label>Medium</label>
-        <input type="number" inputmode="decimal" id="settingSizeMedium" value="25" min="0" step="any">
+        <label>Medium (25-50 lbs)</label>
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSizeMedium" value="25" min="0" step="any"></div>
       </div>
       <div class="settings-input-row">
-        <label>Large</label>
-        <input type="number" inputmode="decimal" id="settingSizeLarge" value="50" min="0" step="any">
+        <label>Large (50-80 lbs)</label>
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSizeLarge" value="50" min="0" step="any"></div>
       </div>
       <div class="settings-input-row">
-        <label>XL</label>
-        <input type="number" inputmode="decimal" id="settingSizeXL" value="100" min="0" step="any">
+        <label>XL (80+ lbs)</label>
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingSizeXL" value="100" min="0" step="any"></div>
       </div>
     </div>
 
@@ -1061,11 +1079,11 @@
     <div class="card">
       <div class="settings-input-row">
         <label>Under 16 wks</label>
-        <input type="number" inputmode="decimal" id="settingLitterUnder16" value="75" min="0" step="any">
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingLitterUnder16" value="75" min="0" step="any"><span class="unit-suffix">/ea</span></div>
       </div>
       <div class="settings-input-row">
         <label>Over 16 wks</label>
-        <input type="number" inputmode="decimal" id="settingLitterOver16" value="100" min="0" step="any">
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingLitterOver16" value="100" min="0" step="any"><span class="unit-suffix">/ea</span></div>
       </div>
     </div>
 
@@ -1074,11 +1092,11 @@
     <div class="card">
       <div class="settings-input-row">
         <label>Base Multiplier</label>
-        <input type="number" inputmode="decimal" id="settingVipMultiplier" value="2" min="0" step="any">
+        <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingVipMultiplier" value="2" min="0" step="any"><span class="unit-suffix">x</span></div>
       </div>
       <div class="settings-input-row">
         <label>Per-Mile Adder</label>
-        <input type="number" inputmode="decimal" id="settingVipPerMile" value="2.00" min="0" step="any">
+        <div class="settings-input-wrap"><span class="unit-prefix">+$</span><input type="number" inputmode="decimal" id="settingVipPerMile" value="2.00" min="0" step="any"><span class="unit-suffix">/mi</span></div>
       </div>
     </div>
 
@@ -1086,28 +1104,28 @@
     <div class="section-header">Surcharge Rates</div>
     <div class="card">
       <div class="settings-input-row">
-        <label>Detour $/mile</label>
-        <input type="number" inputmode="decimal" id="settingDetourPerMile" value="1.50" min="0" step="any">
+        <label>Detour Rate</label>
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingDetourPerMile" value="1.50" min="0" step="any"><span class="unit-suffix">/mi</span></div>
       </div>
       <div class="settings-input-row">
         <label>Detour Threshold</label>
-        <input type="number" inputmode="decimal" id="settingDetourThreshold" value="30" min="0" step="any">
+        <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingDetourThreshold" value="30" min="0" step="any"><span class="unit-suffix">mi</span></div>
       </div>
       <div class="settings-input-row">
-        <label>Wait $/min</label>
-        <input type="number" inputmode="decimal" id="settingWaitPerMin" value="1.00" min="0" step="any">
+        <label>Wait Time Rate</label>
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingWaitPerMin" value="1.00" min="0" step="any"><span class="unit-suffix">/min</span></div>
       </div>
       <div class="settings-input-row">
-        <label>Grace Period (min)</label>
-        <input type="number" inputmode="decimal" id="settingGracePeriod" value="20" min="0" step="any">
+        <label>Grace Period</label>
+        <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingGracePeriod" value="20" min="0" step="any"><span class="unit-suffix">min</span></div>
       </div>
       <div class="settings-input-row">
-        <label>Holiday %</label>
-        <input type="number" inputmode="decimal" id="settingHolidayPercent" value="20" min="0" step="any">
+        <label>Holiday Surcharge</label>
+        <div class="settings-input-wrap"><input type="number" inputmode="decimal" id="settingHolidayPercent" value="20" min="0" step="any"><span class="unit-suffix">%</span></div>
       </div>
       <div class="settings-input-row">
-        <label>Overnight $/night</label>
-        <input type="number" inputmode="decimal" id="settingOvernightPerNight" value="97" min="0" step="any">
+        <label>Overnight Stay</label>
+        <div class="settings-input-wrap"><span class="unit-prefix">$</span><input type="number" inputmode="decimal" id="settingOvernightPerNight" value="97" min="0" step="any"><span class="unit-suffix">/night</span></div>
       </div>
     </div>
 
